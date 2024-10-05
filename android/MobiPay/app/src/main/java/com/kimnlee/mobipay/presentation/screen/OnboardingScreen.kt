@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import com.kimnlee.auth.presentation.viewmodel.LoginViewModel
+import com.kimnlee.common.auth.AuthManager
 import com.kimnlee.mobipay.presentation.components.AppIntroductionPage
 import kotlinx.coroutines.launch
 
@@ -24,6 +25,7 @@ fun OnboardingScreen(
     viewModel: LoginViewModel,
     navController: NavController,
     context: Context,
+    authManager : AuthManager
 ) {
     val pagerState = rememberPagerState(pageCount = { 3 })
     val coroutineScope = rememberCoroutineScope()
@@ -74,8 +76,10 @@ fun OnboardingScreen(
                             pagerState.animateScrollToPage(pagerState.currentPage + 1)
                         }
                     } else {
+                        coroutineScope.launch {
+                        authManager.setFirstIn(true)
+                        }
                         navController.navigate("home")
-                        viewModel.completeRegistration()
                     }
                 }
             ) {

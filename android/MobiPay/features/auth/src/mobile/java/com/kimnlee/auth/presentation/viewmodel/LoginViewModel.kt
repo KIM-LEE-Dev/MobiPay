@@ -56,17 +56,19 @@ class LoginViewModel(
     private var kakaoRefreshToken: String = ""
 
     // 기본등록된 여부 파악
-    private var _isRegistered = MutableStateFlow(false)
-    val isRegistered : StateFlow<Boolean> = _isRegistered
+    private var _isFirstIn = MutableStateFlow(false)
+    val isFirstIn : StateFlow<Boolean> = _isFirstIn
+
     init {
         viewModelScope.launch {
 
             _isLoggedIn.value = authManager.isLoggedInImmediately()
-
-            combine(isLoggedIn, needsRegistration) { isLoggedIn, needsRegistration ->
+            _isFirstIn.value = authManager.isFirstInImmediately()
+            combine(isLoggedIn, needsRegistration,isFirstIn) { isLoggedIn, firstRegistered, needsRegistration ->
                 when {
                     isLoggedIn -> "home"
                     needsRegistration -> "registration"
+                    firstRegistered -> "onboard"
                     else -> "auth"
                 }
             }.collect { route ->
@@ -233,6 +235,7 @@ class LoginViewModel(
     fun testLogin() {
         viewModelScope.launch {
             authManager.setLoggedIn(true)
+            authManager.setLoggedIn(true)
             _isLoggedIn.value = true
             val testToken = "test_auth_token_${System.currentTimeMillis()}"
             authManager.saveAuthToken(testToken)
@@ -244,6 +247,7 @@ class LoginViewModel(
         Log.d(TAG, "로그인 상태 초기화")
         viewModelScope.launch {
             authManager.setLoggedIn(false)
+            authManager.setFirstIn(false)
             _isLoggedIn.value = false
             authManager.clearTokens()
             authManager.clearUserInfo()
@@ -263,9 +267,5 @@ class LoginViewModel(
     fun tooglePolicy(){
         if (!hasAgreed.value) _hasAgreed.value = true
         else _hasAgreed.value = false
-    }
-
-    fun completeRegistration() {
-        _isRegistered.value = true
     }
 }

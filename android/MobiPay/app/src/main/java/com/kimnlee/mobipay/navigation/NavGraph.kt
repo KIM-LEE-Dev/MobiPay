@@ -31,6 +31,7 @@ import com.kimnlee.notification.navigation.notificationNavGraph
 import com.kimnlee.payment.navigation.paymentNavGraph
 import com.kimnlee.vehiclemanagement.navigation.vehicleManagementNavGraph
 import com.kimnlee.vehiclemanagement.presentation.viewmodel.VehicleManagementViewModel
+import kotlin.math.log
 
 @Composable
 fun AppNavGraph(
@@ -47,7 +48,7 @@ fun AppNavGraph(
     val vehicleManagementViewModel = VehicleManagementViewModel(apiClient, context)
     val showMoreViewModel = ShowMoreViewModel(authManager)
     val isLoggedIn by loginViewModel.isLoggedIn.collectAsState()
-
+    val isFirstIn by loginViewModel.isFirstIn.collectAsState()
     LaunchedEffect(loginViewModel) {
         val bluetoothManager =
             context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -67,7 +68,16 @@ fun AppNavGraph(
 
     NavHost(
         navController = navController,
-        startDestination = if (isLoggedIn) "onboard" else "auth"
+//        startDestination = if (isLoggedIn) "onboard" else "auth"
+        startDestination = if (isLoggedIn) {
+            if(isFirstIn) {
+                "home"
+            }else{
+                "onboard"
+            }
+        }else{
+            "auth"
+        }
     ) {
         composable(
             "onboard",
@@ -77,7 +87,8 @@ fun AppNavGraph(
             OnboardingScreen(
                 viewModel = loginViewModel,
                 navController = navController,
-                context = context
+                context = context,
+                authManager = authManager
             )
         }
         composable(

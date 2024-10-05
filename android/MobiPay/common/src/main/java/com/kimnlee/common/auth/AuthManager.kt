@@ -39,6 +39,7 @@ private const val TAG = "AuthManager"
 class AuthManager(private val context: Context) {
 
     private val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
+    private val IS_FIRST_IN = booleanPreferencesKey("is_first_in")
     private val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
     private val secretKey = BuildConfig.SECRET_KEY
 
@@ -54,17 +55,28 @@ class AuthManager(private val context: Context) {
         .map { preferences ->
             preferences[IS_LOGGED_IN] ?: false
         }
+    val isFirstIn: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[IS_FIRST_IN] ?: false
+        }
 
     suspend fun setLoggedIn(isLoggedIn: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[IS_LOGGED_IN] = isLoggedIn
         }
     }
+    suspend fun setFirstIn(isFirstIn: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[IS_FIRST_IN] = isFirstIn
+        }
+    }
 
     suspend fun isLoggedInImmediately(): Boolean {
         return context.dataStore.data.first()[IS_LOGGED_IN] ?: false
     }
-
+    suspend fun  isFirstInImmediately(): Boolean{
+        return context.dataStore.data.first()[IS_FIRST_IN] ?: false
+    }
     fun saveAuthToken(token: String) {
         Log.d(TAG, "JWT 토큰 정상적으로 저장됨: $token")
         encryptedSharedPreferences.edit().putString(KEY_AUTH_TOKEN, token).apply()

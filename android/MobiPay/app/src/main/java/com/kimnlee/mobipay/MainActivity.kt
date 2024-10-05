@@ -68,11 +68,11 @@ class MainActivity : ComponentActivity() {
             MobiPayTheme {
                 val navController = rememberNavController()
                 val isLoggedIn by authManager.isLoggedIn.collectAsState(initial = false)
-                val isRegistered by loginViewModel.isRegistered.collectAsState()
+                val isFirstIn by authManager.isFirstIn.collectAsState(initial = false)
 
                 LaunchedEffect(isLoggedIn) {
                     if (isLoggedIn) {
-                        if(isRegistered) {
+                        if(isFirstIn) {
                             navController.navigate("home") {
                                 popUpTo("auth") { inclusive = true }
                             }
@@ -200,15 +200,12 @@ class MainActivity : ComponentActivity() {
             when (resultCode) {
                 RESULT_OK -> {
                     biometricViewModel.updateAuthenticationState(AuthenticationState.Success)
-//                    Log.d("MainActivity", "Authentication successful")
                 }
                 RESULT_CANCELED -> {
                     biometricViewModel.updateAuthenticationState(AuthenticationState.Failure)
-//                    Log.d("MainActivity", "Authentication canceled or failed")
                 }
                 else -> {
                     biometricViewModel.updateAuthenticationState(AuthenticationState.Error("Unknown error occurred"))
-//                    Log.d("MainActivity", "Authentication error: Unknown result code")
                 }
             }
         }

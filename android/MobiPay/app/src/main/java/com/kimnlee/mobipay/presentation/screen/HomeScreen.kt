@@ -282,7 +282,6 @@ fun NaverMapView(lastLocation: Pair<Double, Double>?) {
     val lastLocationLatLng = lastLocation?.let { LatLng(it.first, it.second) } ?: LatLng(
         37.526665, 126.927127)
 
-
     AndroidView(
         factory = { mapView },
         modifier = Modifier
