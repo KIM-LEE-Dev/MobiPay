@@ -19,13 +19,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
-import com.kimnlee.auth.presentation.viewmodel.AuthenticationState
-import com.kimnlee.auth.presentation.viewmodel.BiometricViewModel
+import com.google.gson.Gson
+import com.kimnlee.payment.presentation.viewmodel.AuthenticationState
+import com.kimnlee.payment.presentation.viewmodel.BiometricViewModel
 import com.kimnlee.auth.presentation.viewmodel.LoginViewModel
 import com.kimnlee.common.ui.theme.MobiPayTheme
 import com.kimnlee.memberinvitation.presentation.viewmodel.MemberInvitationViewModel
 import com.kimnlee.mobipay.navigation.AppNavGraph
 import com.kimnlee.payment.PaymentApprovalReceiver
+import com.kimnlee.payment.data.repository.PaymentRepository
 
 private const val TAG = "MainActivity"
 class MainActivity : ComponentActivity() {
@@ -39,6 +41,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var backgroundLocationPermissionLauncher: ActivityResultLauncher<String>
     private var alertDialog: AlertDialog? = null
+    private lateinit var paymentRepository: PaymentRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,23 +67,33 @@ class MainActivity : ComponentActivity() {
 
         registerPayReceiver()
 
+        paymentRepository = (application as MobiPayApplication).paymentOperations as PaymentRepository
+
         setContent {
             MobiPayTheme {
                 val navController = rememberNavController()
                 val isLoggedIn by authManager.isLoggedIn.collectAsState(initial = false)
+                val fcmData by paymentRepository.fcmDataToNavigate.collectAsState()
                 val isFirstIn by authManager.isFirstIn.collectAsState(initial = false)
 
                 LaunchedEffect(isLoggedIn) {
                     if (isLoggedIn) {
-                        if(isFirstIn) {
-                            navController.navigate("home") {
-                                popUpTo("auth") { inclusive = true }
-                            }
-                        }else{
+//                        if(isFirstIn) { // onboarding 작업 후 주석해제
+//                            navController.navigate("home") {
+//                                popUpTo("auth") { inclusive = true }
+//                            }
+//                        }else{
                             navController.navigate("onboard") {
                                 popUpTo("auth") { inclusive = true }
-                            }
+//                            }
                         }
+                    }
+                }
+
+                LaunchedEffect(fcmData) {
+                    fcmData?.let {
+                        val fcmDataJson = Gson().toJson(it)
+                        navController.navigate("payment_requestmanualpay?fcmData=$fcmDataJson")
                     }
                 }
 

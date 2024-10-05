@@ -13,8 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.kimnlee.auth.navigation.authNavGraph
-import com.kimnlee.auth.presentation.screen.PaymentScreen
-import com.kimnlee.auth.presentation.viewmodel.BiometricViewModel
+import com.kimnlee.payment.presentation.viewmodel.BiometricViewModel
 import com.kimnlee.auth.presentation.viewmodel.LoginViewModel
 import com.kimnlee.cardmanagement.navigation.cardManagementNavGraph
 import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
@@ -26,9 +25,11 @@ import com.kimnlee.memberinvitation.presentation.viewmodel.MemberInvitationViewM
 import com.kimnlee.mobipay.presentation.screen.HomeScreen
 import com.kimnlee.mobipay.presentation.screen.OnboardingScreen
 import com.kimnlee.mobipay.presentation.screen.ShowMoreScreen
+import com.kimnlee.mobipay.presentation.viewmodel.HomeViewModel
 import com.kimnlee.mobipay.presentation.viewmodel.ShowMoreViewModel
 import com.kimnlee.notification.navigation.notificationNavGraph
 import com.kimnlee.payment.navigation.paymentNavGraph
+import com.kimnlee.payment.presentation.screen.ManualPaymentScreen
 import com.kimnlee.vehiclemanagement.navigation.vehicleManagementNavGraph
 import com.kimnlee.vehiclemanagement.presentation.viewmodel.VehicleManagementViewModel
 import kotlin.math.log
@@ -48,6 +49,8 @@ fun AppNavGraph(
     val vehicleManagementViewModel = VehicleManagementViewModel(apiClient, context)
     val showMoreViewModel = ShowMoreViewModel(authManager)
     val isLoggedIn by loginViewModel.isLoggedIn.collectAsState()
+    val homeViewModel = HomeViewModel(apiClient)
+
     val isFirstIn by loginViewModel.isFirstIn.collectAsState()
     LaunchedEffect(loginViewModel) {
         val bluetoothManager =
@@ -70,11 +73,11 @@ fun AppNavGraph(
         navController = navController,
 //        startDestination = if (isLoggedIn) "onboard" else "auth"
         startDestination = if (isLoggedIn) {
-            if(isFirstIn) {
-                "home"
-            }else{
+//            if(isFirstIn) { // onboard 페이지 완성후 주석 풀기
+//                "home"
+//            }else{
                 "onboard"
-            }
+//            }
         }else{
             "auth"
         }
@@ -98,7 +101,8 @@ fun AppNavGraph(
         ) {
             BottomNavigation(navController) {
                 HomeScreen(
-                    viewModel = loginViewModel,
+                    loginViewModel = loginViewModel,
+                    homeViewModel = homeViewModel,
                     navController = navController,
                     context = context
                 )
@@ -116,20 +120,9 @@ fun AppNavGraph(
                 )
             }
         }
-        composable("payment_requestmanualpay",
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None }
-        ) {
-            BottomNavigation(navController) {
-                PaymentScreen(
-                    navController = navController,
-                    viewModel = biometricViewModel
-                )
-            }
-        }
 
         authNavGraph(navController, authManager, loginViewModel)
-        paymentNavGraph(navController)
+        paymentNavGraph(navController, biometricViewModel)
         cardManagementNavGraph(
             navController = navController,
             authManager = authManager,

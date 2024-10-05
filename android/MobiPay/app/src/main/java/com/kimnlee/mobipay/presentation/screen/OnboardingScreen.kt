@@ -11,12 +11,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import com.kimnlee.auth.presentation.viewmodel.LoginViewModel
 import com.kimnlee.common.auth.AuthManager
+import com.kimnlee.common.ui.theme.MobiCardBgGray
 import com.kimnlee.mobipay.presentation.components.AppIntroductionPage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -25,12 +28,12 @@ fun OnboardingScreen(
     viewModel: LoginViewModel,
     navController: NavController,
     context: Context,
-    authManager : AuthManager
+    authManager: AuthManager,
 ) {
     val pagerState = rememberPagerState(pageCount = { 3 })
     val coroutineScope = rememberCoroutineScope()
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().padding(8.dp).background(color = MobiCardBgGray)) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f)
@@ -38,52 +41,7 @@ fun OnboardingScreen(
             when (page) {
                 0 -> AppIntroductionPage()
                 1 -> CardRegistrationPage()
-                2 -> VehicleRegistrationPage()
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 페이지 인디케이터
-            Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                repeat(3) { iteration ->
-                    val color =
-                        if (pagerState.currentPage == iteration) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(
-                            alpha = 0.5f
-                        )
-                    Box(
-                        modifier = Modifier
-                            .padding(2.dp)
-                            .size(8.dp)
-                            .background(color = color, shape = CircleShape)
-                    )
-                }
-            }
-
-            // 다음/완료 버튼
-            Button(
-                onClick = {
-                    if (pagerState.currentPage < 2) {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                        }
-                    } else {
-                        coroutineScope.launch {
-                        authManager.setFirstIn(true)
-                        }
-                        navController.navigate("home")
-                    }
-                }
-            ) {
-                Text(if (pagerState.currentPage == 2) "완료" else "다음")
+                2 -> VehicleRegistrationPage(coroutineScope = coroutineScope, authManager = authManager, navController = navController)
             }
         }
     }
@@ -95,6 +53,16 @@ fun CardRegistrationPage() {
 }
 
 @Composable
-fun VehicleRegistrationPage() {
+fun VehicleRegistrationPage(coroutineScope : CoroutineScope, authManager: AuthManager, navController: NavController) {
     // 차량 등록 페이지 내용
+    Button(
+        onClick = {
+                coroutineScope.launch {
+                    authManager.setFirstIn(true)
+                }
+                navController.navigate("home")
+        }
+    ) {
+        Text( "완료" )
+    }
 }
