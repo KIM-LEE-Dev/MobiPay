@@ -55,6 +55,9 @@ class LoginViewModel(
     private var kakaoAccessToken: String = ""
     private var kakaoRefreshToken: String = ""
 
+    // 기본등록된 여부 파악
+    private var _isRegistered = MutableStateFlow(false)
+    val isRegistered : StateFlow<Boolean> = _isRegistered
     init {
         viewModelScope.launch {
 
@@ -260,5 +263,9 @@ class LoginViewModel(
     fun tooglePolicy(){
         if (!hasAgreed.value) _hasAgreed.value = true
         else _hasAgreed.value = false
+    }
+
+    fun completeRegistration() {
+        _isRegistered.value = true
     }
 }

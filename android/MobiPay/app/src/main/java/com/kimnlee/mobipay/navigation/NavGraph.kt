@@ -24,6 +24,7 @@ import com.kimnlee.common.network.ApiClient
 import com.kimnlee.memberinvitation.navigation.memberInvitationNavGraph
 import com.kimnlee.memberinvitation.presentation.viewmodel.MemberInvitationViewModel
 import com.kimnlee.mobipay.presentation.screen.HomeScreen
+import com.kimnlee.mobipay.presentation.screen.OnboardingScreen
 import com.kimnlee.mobipay.presentation.screen.ShowMoreScreen
 import com.kimnlee.mobipay.presentation.viewmodel.ShowMoreViewModel
 import com.kimnlee.notification.navigation.notificationNavGraph
@@ -48,7 +49,8 @@ fun AppNavGraph(
     val isLoggedIn by loginViewModel.isLoggedIn.collectAsState()
 
     LaunchedEffect(loginViewModel) {
-        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val bluetoothManager =
+            context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val bluetoothAdapter = bluetoothManager.adapter
         memberInvitationViewModel.initBluetoothAdapter(bluetoothAdapter)
 
@@ -65,9 +67,19 @@ fun AppNavGraph(
 
     NavHost(
         navController = navController,
-        startDestination = if (isLoggedIn) "home" else "auth"
+        startDestination = if (isLoggedIn) "onboard" else "auth"
     ) {
-
+        composable(
+            "onboard",
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None }
+        ) {
+            OnboardingScreen(
+                viewModel = loginViewModel,
+                navController = navController,
+                context = context
+            )
+        }
         composable(
             "home",
             enterTransition = { EnterTransition.None },
@@ -113,7 +125,14 @@ fun AppNavGraph(
             viewModel = cardManagementViewModel,
             apiClient = apiClient
         )
-        vehicleManagementNavGraph(navController, context, apiClient, vehicleManagementViewModel, memberInvitationViewModel, cardManagementViewModel)
+        vehicleManagementNavGraph(
+            navController,
+            context,
+            apiClient,
+            vehicleManagementViewModel,
+            memberInvitationViewModel,
+            cardManagementViewModel
+        )
         memberInvitationNavGraph(navController, context, memberInvitationViewModel)
 
         notificationNavGraph(navController)

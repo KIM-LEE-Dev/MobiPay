@@ -68,11 +68,18 @@ class MainActivity : ComponentActivity() {
             MobiPayTheme {
                 val navController = rememberNavController()
                 val isLoggedIn by authManager.isLoggedIn.collectAsState(initial = false)
+                val isRegistered by loginViewModel.isRegistered.collectAsState()
 
                 LaunchedEffect(isLoggedIn) {
                     if (isLoggedIn) {
-                        navController.navigate("home") {
-                            popUpTo("auth") { inclusive = true }
+                        if(isRegistered) {
+                            navController.navigate("home") {
+                                popUpTo("auth") { inclusive = true }
+                            }
+                        }else{
+                            navController.navigate("onboard") {
+                                popUpTo("auth") { inclusive = true }
+                            }
                         }
                     }
                 }

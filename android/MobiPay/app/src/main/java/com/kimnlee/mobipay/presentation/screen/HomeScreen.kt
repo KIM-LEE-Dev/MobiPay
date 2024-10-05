@@ -51,6 +51,7 @@ import com.kimnlee.common.R
 import com.kimnlee.common.ui.theme.MobiCardBgGray
 import com.kimnlee.common.ui.theme.MobiPayTheme
 import com.kimnlee.common.ui.theme.MobiTextAlmostBlack
+import com.mapbox.navigation.core.internal.extensions.navigationListOf
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.MapView
@@ -65,7 +66,6 @@ fun HomeScreen(
 ) {
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     var lastLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
-
 
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) {
