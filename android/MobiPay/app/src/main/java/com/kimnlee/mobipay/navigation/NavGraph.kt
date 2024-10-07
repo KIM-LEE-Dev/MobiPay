@@ -29,7 +29,6 @@ import com.kimnlee.common.network.ApiClient
 import com.kimnlee.memberinvitation.navigation.memberInvitationNavGraph
 import com.kimnlee.memberinvitation.presentation.viewmodel.MemberInvitationViewModel
 import com.kimnlee.mobipay.presentation.screen.HomeScreen
-import com.kimnlee.mobipay.presentation.screen.OnboardingScreen
 import com.kimnlee.mobipay.presentation.screen.ShowMoreScreen
 import com.kimnlee.mobipay.presentation.viewmodel.HomeViewModel
 import com.kimnlee.mobipay.presentation.viewmodel.ShowMoreViewModel
@@ -52,12 +51,12 @@ fun AppNavGraph(
     paymentRepository: PaymentRepository
 ) {
     val application = context as Application
+    val homeViewModel = HomeViewModel(apiClient)
     val biometricViewModel = BiometricViewModel(application)
     val cardManagementViewModel = CardManagementViewModel(authManager, apiClient)
     val vehicleManagementViewModel = VehicleManagementViewModel(apiClient, context)
     val showMoreViewModel = ShowMoreViewModel(authManager)
     val isLoggedIn by loginViewModel.isLoggedIn.collectAsState()
-    val homeViewModel = HomeViewModel(apiClient)
     val isFirstIn by loginViewModel.isFirstIn.collectAsState()
 
     LaunchedEffect(loginViewModel) {
@@ -90,22 +89,6 @@ fun AppNavGraph(
         }
     ) {
         composable(
-            "onboard",
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None }
-        ) { backStackEntry ->
-
-            OnboardingScreen(
-                loginviewModel = loginViewModel,
-                homeViewModel =  homeViewModel,
-                vehicleViewModel = vehicleManagementViewModel,
-                navController = navController,
-                context = context,
-                authManager = authManager,
-                cardInfos = emptyList()
-            )
-        }
-        composable(
             "home",
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None }
@@ -131,7 +114,7 @@ fun AppNavGraph(
                 )
             }
         }
-
+        onBoardNavGraph(navController,context, authManager,homeViewModel, vehicleManagementViewModel)
         authNavGraph(navController, authManager, loginViewModel)
         paymentNavGraph(navController, biometricViewModel, paymentRepository)
         cardManagementNavGraph(
