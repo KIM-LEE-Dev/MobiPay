@@ -25,10 +25,9 @@ fun NavGraphBuilder.authNavGraph(
             LoginScreen(
                 viewModel = loginViewModel,
                 onNavigateToHome = {
-                    // 임시주석
-//                    navController.navigate("home") {
-//                        popUpTo("auth") { inclusive = true }
-//                    }
+                    navController.navigate("home") {
+                        popUpTo("auth") { inclusive = true }
+                    }
                 }
             )
         }

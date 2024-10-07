@@ -18,6 +18,7 @@ import com.google.gson.reflect.TypeToken
 import com.kimnlee.auth.navigation.authNavGraph
 import com.kimnlee.payment.presentation.viewmodel.BiometricViewModel
 import com.kimnlee.auth.presentation.viewmodel.LoginViewModel
+import com.kimnlee.cardmanagement.data.model.RegisteredCard
 import com.kimnlee.cardmanagement.data.model.CardInfo
 import com.kimnlee.cardmanagement.navigation.cardManagementNavGraph
 import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
@@ -32,6 +33,7 @@ import com.kimnlee.mobipay.presentation.screen.ShowMoreScreen
 import com.kimnlee.mobipay.presentation.viewmodel.HomeViewModel
 import com.kimnlee.mobipay.presentation.viewmodel.ShowMoreViewModel
 import com.kimnlee.notification.navigation.notificationNavGraph
+import com.kimnlee.payment.data.repository.PaymentRepository
 import com.kimnlee.payment.navigation.paymentNavGraph
 import com.kimnlee.payment.presentation.screen.ManualPaymentScreen
 import com.kimnlee.vehiclemanagement.navigation.vehicleManagementNavGraph
@@ -45,7 +47,8 @@ fun AppNavGraph(
     context: Context,
     apiClient: ApiClient,
     loginViewModel: LoginViewModel,
-    memberInvitationViewModel: MemberInvitationViewModel
+    memberInvitationViewModel: MemberInvitationViewModel,
+    paymentRepository: PaymentRepository
 ) {
     val application = context as Application
     val biometricViewModel = BiometricViewModel(application)
@@ -57,8 +60,7 @@ fun AppNavGraph(
     val isFirstIn by loginViewModel.isFirstIn.collectAsState()
 
     LaunchedEffect(loginViewModel) {
-        val bluetoothManager =
-            context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val bluetoothAdapter = bluetoothManager.adapter
         memberInvitationViewModel.initBluetoothAdapter(bluetoothAdapter)
 
@@ -94,8 +96,7 @@ fun AppNavGraph(
 
             OnboardingScreen(
                 loginviewModel = loginViewModel,
-                cardManagementViewModel = cardManagementViewModel,
-                vehicleManagementViewModel = vehicleManagementViewModel,
+                homeViewModel =  homeViewModel,
                 navController = navController,
                 context = context,
                 authManager = authManager,
@@ -130,21 +131,13 @@ fun AppNavGraph(
         }
 
         authNavGraph(navController, authManager, loginViewModel)
-        paymentNavGraph(navController, biometricViewModel)
+        paymentNavGraph(navController, biometricViewModel, paymentRepository)
         cardManagementNavGraph(
             navController = navController,
             authManager = authManager,
-            viewModel = cardManagementViewModel,
-            apiClient = apiClient
+            viewModel = cardManagementViewModel
         )
-        vehicleManagementNavGraph(
-            navController,
-            context,
-            apiClient,
-            vehicleManagementViewModel,
-            memberInvitationViewModel,
-            cardManagementViewModel
-        )
+        vehicleManagementNavGraph(navController, context, apiClient, vehicleManagementViewModel, memberInvitationViewModel, cardManagementViewModel)
         memberInvitationNavGraph(navController, context, memberInvitationViewModel)
 
         notificationNavGraph(navController)
