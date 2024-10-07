@@ -26,6 +26,7 @@ import com.kimnlee.mobipay.presentation.components.OnBoardAppIntroduction
 import com.kimnlee.mobipay.presentation.components.OnBoardCardRegistration
 import com.kimnlee.mobipay.presentation.components.OnBoardVehicleRegistration
 import com.kimnlee.mobipay.presentation.viewmodel.HomeViewModel
+import com.kimnlee.vehiclemanagement.presentation.screen.VehicleManagementScreen
 import com.kimnlee.vehiclemanagement.presentation.viewmodel.VehicleManagementViewModel
 import kotlinx.coroutines.launch
 
@@ -34,6 +35,7 @@ import kotlinx.coroutines.launch
 fun OnboardingScreen(
     loginviewModel: LoginViewModel,
     homeViewModel: HomeViewModel,
+    vehicleViewModel: VehicleManagementViewModel,
     cardInfos: List<CardInfo>,
     navController: NavController,
     context: Context,
@@ -67,8 +69,13 @@ fun OnboardingScreen(
                 0 -> OnBoardAppIntroduction(
 
                 )
-                1 -> OnBoardVehicleRegistration(
-
+//                1 -> OnBoardVehicleRegistration()
+                1 -> VehicleManagementScreen(
+                    onNavigateToDetail = { vehicleId ->
+                        navController.navigate("vehiclemanagement_detail/$vehicleId")
+                    },
+                    onNavigateToRegistration = { navController.navigate("vehiclemanagement_registration") },
+                    viewModel = vehicleViewModel
                 )
 
                 2 -> OnBoardCardRegistration(

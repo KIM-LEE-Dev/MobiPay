@@ -54,8 +54,6 @@ fun OnBoardCardRegistration (
         when (val state = uiState) {
             is OnboardOwnedCardState.Loading -> LoadingState()
             is OnboardOwnedCardState.Success -> {
-                val selectableCards = state.cards.filter { !viewModel.isCardRegistered(it.id) }
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -82,18 +80,6 @@ fun OnBoardCardRegistration (
                     },
                     isCardRegistered = { viewModel.isCardRegistered(it.id) }
                 )
-//                CardList(
-//                    cards = state.cards,
-//                    selectedCards = selectedCards,
-//                    onCardSelected = { card, isSelected ->
-//                        if (!viewModel.isCardRegistered(card.id)) {
-//                            selectedCards =
-//                                if (isSelected) selectedCards + card else selectedCards - card
-//                            isAllSelected = selectedCards.size == selectableCards.size
-//                        }
-//                    },
-//                    isCardRegistered = { viewModel.isCardRegistered(it.id) }
-//                )
             }
 
             is OnboardOwnedCardState.Error -> {
