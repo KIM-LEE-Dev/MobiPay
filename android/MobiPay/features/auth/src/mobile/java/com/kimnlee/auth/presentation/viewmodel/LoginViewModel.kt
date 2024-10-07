@@ -72,9 +72,9 @@ class LoginViewModel(
             _isFirstIn.value = authManager.isFirstInImmediately()
             combine(isLoggedIn, needsRegistration,isFirstIn) { isLoggedIn, firstRegistered, needsRegistration ->
                 when {
+                    firstRegistered -> "onboard"
                     isLoggedIn -> "home"
                     needsRegistration -> "registration"
-                    firstRegistered -> "onboard"
                     else -> "auth"
                 }
             }.collect { route ->
@@ -178,7 +178,7 @@ class LoginViewModel(
 
             // 네비게이션 이벤트는 모든 처리가 끝난 후 한 번만 발생시킴
             if (_isLoggedIn.value) {
-                _navigationEvent.emit("home")
+//                _navigationEvent.emit("home")
             }
         }
     }

@@ -293,7 +293,7 @@ fun NaverMapView(lastLocation: Pair<Double, Double>?, naverMapService: NaverMapS
     lateinit var address : String
     // 주차 정보가 없으면 기본 위치 표시
     val lastLocationLatLng = lastLocation?.let { LatLng(it.first, it.second) } ?: LatLng(
-        36.107368, 128.425046) // 37.526665, 126.927127
+        37.526665, 126.927127)
     runBlocking {
         val repository = NaverMapRepository("81dn8nvzim", YOUR_CLIENT_SECRET, naverMapService)
         address = repository.getAddressFromCoords(lastLocationLatLng)

@@ -123,7 +123,7 @@ fun ShowMoreScreen(
                         MenuItem("결제 내역", { navController.navigate("paymenthistory") }, emoji = "💳"),
                         MenuItem("초대 대기", { navController.navigate("memberinvitation_invitationwaiting") }, emoji = "📩"),
                         MenuItem("결제화면(임시)", { navController.navigate("payment_requestmanualpay") }),
-                        MenuItem("메뉴 2", { }),
+                        MenuItem("온보딩 화면(임시)", {navController.navigate("onboard") }),
                         MenuItem("로그아웃", { loginViewModel.logout() })
                     )
                 )

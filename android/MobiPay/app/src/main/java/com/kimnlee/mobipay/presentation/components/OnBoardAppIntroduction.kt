@@ -21,14 +21,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.kimnlee.common.ui.theme.MobiBlue
 import com.kimnlee.common.ui.theme.MobiCardBgGray
-import com.kimnlee.common.ui.theme.MobiSelectedButtonDarkGray
 import com.kimnlee.common.ui.theme.MobiTextAlmostBlack
 import com.kimnlee.common.ui.theme.MobiTextDarkGray
 
 @Composable
-fun AppIntroductionPage() {
+fun OnBoardAppIntroduction() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -38,9 +36,8 @@ fun AppIntroductionPage() {
         HeaderSection()
         FeatureItem(FeatureInfo("차량을 등록해주세요.", "Track your daily movement", R.drawable.ray))
         Spacer(modifier = Modifier.padding(12.dp))
-        FeatureItem(FeatureInfo("카드를 등록해주세요.", "Track all your workouts", R.drawable.q2))
+        FeatureItem(FeatureInfo("카드를 등록해주세요.", "Track all your workouts", com.kimnlee.cardmanagement.R.drawable.bc_kully))
         Spacer(modifier = Modifier.weight(1f))
-        FooterSection()
     }
 }
 
@@ -82,7 +79,7 @@ fun FeatureItem(feature: FeatureInfo) {
                 modifier = Modifier
                     .size(60.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
@@ -99,20 +96,6 @@ fun FeatureItem(feature: FeatureInfo) {
                 )
             }
         }
-    }
-}
-
-@Composable
-fun FooterSection() {
-    Button(
-        onClick = { /* Handle subscription */ },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp,end=16.dp, bottom = 40.dp)
-            .height(72.dp),
-        colors = ButtonDefaults.buttonColors(MobiBlue)
-    ) {
-        Text("Continue", color = Color.White, style = MaterialTheme.typography.headlineSmall)
     }
 }
 

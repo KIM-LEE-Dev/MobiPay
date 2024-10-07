@@ -25,9 +25,10 @@ fun NavGraphBuilder.authNavGraph(
             LoginScreen(
                 viewModel = loginViewModel,
                 onNavigateToHome = {
-                    navController.navigate("home") {
-                        popUpTo("auth") { inclusive = true }
-                    }
+                    // 임시주석
+//                    navController.navigate("home") {
+//                        popUpTo("auth") { inclusive = true }
+//                    }
                 }
             )
         }
@@ -38,7 +39,7 @@ fun NavGraphBuilder.authNavGraph(
         ) {
             RegistrationScreen(
                 viewModel = loginViewModel,
-                onRegistrationSuccess = { navController.navigate("home") },
+                onRegistrationSuccess = { /*navController.navigate("home")*/ },
                 onRegistrationFailed = { navController.navigateUp() },
                 onBackPressed = { navController.navigate("login") {
                     popUpTo("auth") { inclusive = true }

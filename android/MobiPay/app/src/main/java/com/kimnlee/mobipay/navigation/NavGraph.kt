@@ -3,6 +3,7 @@ package com.kimnlee.mobipay.navigation
 import android.app.Application
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.net.Uri
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
@@ -12,9 +13,12 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.kimnlee.auth.navigation.authNavGraph
 import com.kimnlee.payment.presentation.viewmodel.BiometricViewModel
 import com.kimnlee.auth.presentation.viewmodel.LoginViewModel
+import com.kimnlee.cardmanagement.data.model.CardInfo
 import com.kimnlee.cardmanagement.navigation.cardManagementNavGraph
 import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
 import com.kimnlee.common.auth.AuthManager
@@ -50,8 +54,8 @@ fun AppNavGraph(
     val showMoreViewModel = ShowMoreViewModel(authManager)
     val isLoggedIn by loginViewModel.isLoggedIn.collectAsState()
     val homeViewModel = HomeViewModel(apiClient)
-
     val isFirstIn by loginViewModel.isFirstIn.collectAsState()
+
     LaunchedEffect(loginViewModel) {
         val bluetoothManager =
             context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -86,12 +90,16 @@ fun AppNavGraph(
             "onboard",
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None }
-        ) {
+        ) { backStackEntry ->
+
             OnboardingScreen(
-                viewModel = loginViewModel,
+                loginviewModel = loginViewModel,
+                cardManagementViewModel = cardManagementViewModel,
+                vehicleManagementViewModel = vehicleManagementViewModel,
                 navController = navController,
                 context = context,
-                authManager = authManager
+                authManager = authManager,
+                cardInfos = emptyList()
             )
         }
         composable(
