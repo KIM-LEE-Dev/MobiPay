@@ -12,6 +12,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.kimnlee.auth.presentation.viewmodel.LoginViewModel
 import com.kimnlee.cardmanagement.data.model.CardInfo
 import com.kimnlee.cardmanagement.data.model.RegisterCardRequest
 import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
@@ -26,15 +27,15 @@ import com.kimnlee.onboard.presentation.screen.OnBoardOwnedCardListScreen
 import com.kimnlee.onboard.presentation.screen.OnBoardVehicleRegistrationScreen
 import com.kimnlee.onboard.presentation.screen.OnBoardVehicleScreen
 import com.kimnlee.vehiclemanagement.presentation.viewmodel.VehicleManagementViewModel
+import kotlin.math.log
 
 fun NavGraphBuilder.onBoardNavGraph(
     navController: NavHostController,
-    context: Context,
-    authManager: AuthManager,
     apiClient: ApiClient,
     cardManagementViewModel: CardManagementViewModel,
     vehicleManagementViewModel: VehicleManagementViewModel,
-    memberInvitationViewModel: MemberInvitationViewModel
+    memberInvitationViewModel: MemberInvitationViewModel,
+    loginViewModel: LoginViewModel
 ) {
     navigation(startDestination = "onboard_main", route = "onboard") {
         // 첫 번째 온보딩 페이지
@@ -42,7 +43,12 @@ fun NavGraphBuilder.onBoardNavGraph(
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None }
         ) {
-            AppIntroduction(onNavigateOwnedCard = { navController.navigate("onboard_card_list") }, goHome={navController.navigate("home")}
+            AppIntroduction(
+                onNavigateOwnedCard = { navController.navigate("onboard_card_list") },
+                goHome = {
+                    navController.navigate("home")
+                    loginViewModel.finishOnboard()
+                }
             )
         }
     }
@@ -120,14 +126,20 @@ fun NavGraphBuilder.onBoardNavGraph(
         )
     ) { backStackEntry ->
         val json = Uri.decode(backStackEntry.arguments?.getString("cardsToRegister") ?: "")
-        val cardsToRegister = Gson().fromJson<List<RegisterCardRequest>>(json, object : TypeToken<List<RegisterCardRequest>>() {}.type)
+        val cardsToRegister = Gson().fromJson<List<RegisterCardRequest>>(
+            json,
+            object : TypeToken<List<RegisterCardRequest>>() {}.type
+        )
         OnBoardVehicleRegistrationScreen(
             apiClient = apiClient,
             cardManagementViewModel = cardManagementViewModel,
             vehicleViewModel = vehicleManagementViewModel,
             cardsToRegister = cardsToRegister,
             onNavigateBack = { navController.navigateUp() },
-            finishRegister = { navController.navigate("home") }
+            finishRegister = {
+                navController.navigate("home")
+                loginViewModel.finishOnboard()
+            }
         )
     }
 
@@ -142,7 +154,10 @@ fun NavGraphBuilder.onBoardNavGraph(
         val json = Uri.decode(backStackEntry.arguments?.getString("cardInfos") ?: "")
         val cardInfos =
             Gson().fromJson<List<CardInfo>>(json, object : TypeToken<List<CardInfo>>() {}.type)
-        InvitationWaitingScreen(navController = navController, memberInvitationViewModel = memberInvitationViewModel)
+        InvitationWaitingScreen(
+            navController = navController,
+            memberInvitationViewModel = memberInvitationViewModel
+        )
 //        OnBoardMemberInvitation(
 //            apiClient = apiClient,
 //            cardManagementViewModel = cardManagementViewModel,

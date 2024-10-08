@@ -74,7 +74,7 @@ class AuthManager(private val context: Context) {
     suspend fun isLoggedInImmediately(): Boolean {
         return context.dataStore.data.first()[IS_LOGGED_IN] ?: false
     }
-    suspend fun  isFirstInImmediately(): Boolean{
+    suspend fun isFirstInImmediately(): Boolean{
         return context.dataStore.data.first()[IS_FIRST_IN] ?: false
     }
     fun saveAuthToken(token: String) {

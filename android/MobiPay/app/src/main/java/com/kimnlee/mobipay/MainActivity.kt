@@ -93,14 +93,14 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(isLoggedIn) {
                     if (isLoggedIn) {
-//                        if(isFirstIn) { // onboarding 작업 후 주석해제
-//                            navController.navigate("home") {
-//                                popUpTo("auth") { inclusive = true }
-//                            }
-//                        }else{
+                        if(isFirstIn) { // onboarding 작업 후 주석해제
+                            navController.navigate("home") {
+                                popUpTo("auth") { inclusive = true }
+                            }
+                        }else{
                         navController.navigate("onboard") {
                             popUpTo("auth") { inclusive = true }
-//                            }
+                            }
                         }}}
                 LaunchedEffect(isLoggedIn, fcmData, registeredCards) {
                     if (isLoggedIn && fcmData != null && fcmData!!.type != "payment_success" && registeredCards.isNotEmpty()) {

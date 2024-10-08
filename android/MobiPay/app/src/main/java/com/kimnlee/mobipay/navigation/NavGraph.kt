@@ -72,11 +72,11 @@ fun AppNavGraph(
         navController = navController,
 //        startDestination = if (isLoggedIn) "onboard" else "auth"
         startDestination = if (isLoggedIn) {
-//            if(isFirstIn) { // onboard 페이지 완성후 주석 풀기
-//                "home"
-//            }else{
+            if(isFirstIn) { // onboard 페이지 완성후 주석 풀기
+                "home"
+            }else{
                 "onboard"
-//            }
+            }
         }else{
             "auth"
         }
@@ -107,7 +107,7 @@ fun AppNavGraph(
                 )
             }
         }
-        onBoardNavGraph(navController,context, authManager, apiClient,cardManagementViewModel, vehicleManagementViewModel,memberInvitationViewModel )
+        onBoardNavGraph(navController, apiClient,cardManagementViewModel, vehicleManagementViewModel,memberInvitationViewModel,loginViewModel )
         authNavGraph(navController, authManager, loginViewModel)
         paymentNavGraph(navController, biometricViewModel, paymentRepository)
         cardManagementNavGraph(

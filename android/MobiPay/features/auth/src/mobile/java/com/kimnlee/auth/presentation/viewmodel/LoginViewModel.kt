@@ -70,9 +70,9 @@ class LoginViewModel(
 
             _isLoggedIn.value = authManager.isLoggedInImmediately()
             _isFirstIn.value = authManager.isFirstInImmediately()
-            combine(isLoggedIn, needsRegistration,isFirstIn) { isLoggedIn, firstRegistered, needsRegistration ->
+            combine(isLoggedIn, needsRegistration,isFirstIn) { isLoggedIn, isFirstIn, needsRegistration ->
                 when {
-                    firstRegistered -> "onboard"
+                    isFirstIn -> "onboard"
                     isLoggedIn -> "home"
                     needsRegistration -> "registration"
                     else -> "auth"
@@ -178,7 +178,7 @@ class LoginViewModel(
 
             // 네비게이션 이벤트는 모든 처리가 끝난 후 한 번만 발생시킴
             if (_isLoggedIn.value) {
-//                _navigationEvent.emit("home")
+                _navigationEvent.emit("home")
             }
         }
     }
@@ -260,6 +260,7 @@ class LoginViewModel(
             _registrationResult.value = null
             _needsRegistration.value = false
             _hasAgreed.value = false
+            _isFirstIn.value = false
         }
     }
 
@@ -273,5 +274,9 @@ class LoginViewModel(
     fun tooglePolicy(){
         if (!hasAgreed.value) _hasAgreed.value = true
         else _hasAgreed.value = false
+    }
+
+    fun finishOnboard(){
+        _isFirstIn.value = true
     }
 }

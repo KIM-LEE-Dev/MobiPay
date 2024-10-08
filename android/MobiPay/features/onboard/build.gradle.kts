@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":features:cardmanagement"))
     implementation(project(":features:vehiclemanagement"))
     implementation(project(":features:memberinvitation"))
+    implementation(project(":features:auth"))
 
     implementation(libs.guava)
     implementation(libs.text.recognition)

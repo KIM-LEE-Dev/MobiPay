@@ -64,6 +64,7 @@ fun HomeScreen(
     context: Context
 ) {
     val isLoggedIn by loginViewModel.isLoggedIn.collectAsState()
+    val isFirstIn by loginViewModel.isFirstIn.collectAsState()
     var lastLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
     val naverMapService by homeViewModel.naverMapService.collectAsState()
     val hasNewNotifications by homeViewModel.hasNewNotifications.collectAsState()

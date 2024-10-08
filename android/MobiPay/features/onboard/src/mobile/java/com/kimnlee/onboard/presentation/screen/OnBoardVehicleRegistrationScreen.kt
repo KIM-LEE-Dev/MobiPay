@@ -510,6 +510,7 @@ fun OnBoardVehicleRegistrationScreen(
                                 // 카드 등록
                                 cardManagementViewModel.registerCards(cardsToRegister)
                                 finishRegister() // 등록 종료 및 home 으로 이동
+
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MobiBlue,
