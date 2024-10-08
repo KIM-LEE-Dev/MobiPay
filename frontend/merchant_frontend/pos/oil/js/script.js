@@ -1,10 +1,7 @@
 let lpnumber = null;
 const url = "https://merchant.mobipay.kr/api/v1";
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-const MERCHANT_TYPE = 'FOOD';
-========
 const MERCHANT_TYPE = 'OIL';
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
+const MERCHANT_TYPE_URL = 'oil';
 const MER_API_KEY = 'Da19J03F6g7H8iB2c54e';
 
 async function loadDatabase() {
@@ -53,11 +50,6 @@ function initApp() {
     car_present: false,
     model: null,
     video: null,
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-
-    initVideo() {
-      this.video = document.getElementById('video');
-========
     socket: null,
     isManualLPnoModalOpen: false,
     isShowCameraChooseModal: false,
@@ -124,7 +116,6 @@ function initApp() {
         this.isMobiUser = true;
       }
       this.closeLPnoModal();
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
     },
 
     async initDatabase() {
@@ -132,10 +123,6 @@ function initApp() {
       await this.loadJsonData();
     },
 
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-
-========
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
     async loadJsonData() {
       await this.db.clearProducts();
 
@@ -152,12 +139,6 @@ function initApp() {
       return this.products;
     },
 
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-    addToCart(product) {
-      const index = this.findCartIndex(product);
-      if (index === -1) {
-        this.cart.push({
-========
     //
     handleClick(product) {
       this.addToCart(product); // 기존 동작 유지
@@ -178,18 +159,13 @@ function initApp() {
       const index = this.findCartIndex(product);
       if (index === -1) {
         this.cart = [{
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
           productId: product.id,
           image: product.image,
           name: product.name,
           price: product.price,
           option: product.option,
           qty: 1,
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-        });
-========
         }];
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
       } else {
         this.cart[index].qty += 1;
       }
@@ -220,14 +196,7 @@ function initApp() {
     },
 
     getTotalPrice() {
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-      return this.cart.reduce(
-          (total, item) => total + item.qty * item.price,
-          0
-      );
-========
       return this.selectedAmount
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
     },
 
     submit() {
@@ -245,8 +214,6 @@ function initApp() {
       this.isShowModalReceipt = false;
     },
 
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-========
     closeModalSuccess() {
       this.isShowModalSuccess = false;
     },
@@ -258,7 +225,6 @@ function initApp() {
           document.querySelector('.flex-col.items-center.py-4').classList.remove('bg-blue-300');
     },
 
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
     dateFormat(date) {
       const formatter = new Intl.DateTimeFormat('id', { dateStyle: 'short', timeStyle: 'short'});
       return formatter.format(date);
@@ -271,17 +237,12 @@ function initApp() {
           .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
     },
 
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-    priceFormat(number) {
-      return number ? `${this.numberFormat(number)} 원` : `0 원`;
-========
     priceFormat() {
       return `${this.selectedAmount.toLocaleString()} 원`;
     },
 
     howmany(price) {
       return `${(this.selectedAmount/price).toFixed(2)} L`;
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
     },
 
     clear() {
@@ -310,9 +271,6 @@ function initApp() {
       sound.onended = () => delete(sound);
     },
 
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-
-========
     cancelLoading() {
       if (this.socket) {
         this.socket.close();
@@ -320,26 +278,16 @@ function initApp() {
       }
       this.isLoading = false;
     },
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
 
     requestPayMobi() {
       this.closeModalReceipt();
       this.isLoading = true;
 
       // websocket 연결
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-      const socket = new WebSocket('wss://merchant.mobipay.kr/api/v1/merchants/websocket');
-
-      let sessionId; // 세션 ID를 저장할 변수
-
-
-      socket.onopen = async (event) => {
-========
       this.socket = new WebSocket('wss://merchant.mobipay.kr/api/v1/merchants/websocket');
       let sessionId; // 세션 ID를 저장할 변수
 
       this.socket.onopen = async (event) => {
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
         console.log('WebSocket is open now.');
 
         let info = this.cart.map(item => `${item.name} x ${item.qty}`).join(', ');
@@ -365,26 +313,11 @@ function initApp() {
         } catch (error) {
           console.error('결제 요청 실패:', error);
           // 웹소켓 연결 해제
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-          socket.close();
-========
           this.socket.close();
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
           alert('결제 요청 실패');
         }
       };
 
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-      socket.onclose = (event) => {
-        console.log('WebSocket is closed now.');
-      };
-
-      socket.onerror = (error) => {
-        console.log('WebSocket error:', error);
-      };
-
-      socket.onmessage = (event) => {
-========
       this.socket.onclose = (event) => {
         console.log('WebSocket is closed now.');
       };
@@ -394,30 +327,15 @@ function initApp() {
       };
 
       this.socket.onmessage = (event) => {
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
         const message = JSON.parse(event.data);
 
         if (message.sessionId) {
           sessionId = message.sessionId;
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-          socket.send(JSON.stringify({ "type": MERCHANT_TYPE }));
-========
           this.socket.send(JSON.stringify({ "type": MERCHANT_TYPE }));
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
         } else {
           if (message.success) {
             this.isLoading = false;
             this.isShowModalSuccess = true;
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-          } else {
-            this.isLoading = false;
-            alert('결제 실패');
-          }
-          socket.close();
-        }
-      };
-
-========
             this.lpno = null;
             this.isMobiUser = false;
             this.cart = [];
@@ -428,7 +346,6 @@ function initApp() {
           }
         }
       };
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
     },
 
     startCamera(facingMode) {
@@ -443,16 +360,10 @@ function initApp() {
     },
 
     async detectObjects() {
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-      try {
-        const predictions = await this.model.detect(this.video);
-        this.car_present = false;
-========
       if (!this.detectionStopped){
         try {
           const predictions = await this.model.detect(this.video);
           this.car_present = false;
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
 
         predictions.forEach((prediction) => {
           if (prediction.class === 'car') {
@@ -489,10 +400,6 @@ function initApp() {
                     const confidence = parseFloat(data.confidence);
 
                     if (confidence > 0.85) {
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-                      self.$data.lpno = data.predicted_text;
-                      self.$data.isMobiUser = true;
-========
                       const detectedLpno = data.predicted_text;
 
                       if (self.lastLpno !== detectedLpno) {
@@ -512,7 +419,6 @@ function initApp() {
                         self.$data.lpno = detectedLpno;
                         self.$data.isMobiUser = true;
                       }
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
                     } else {
                       console.log("정확도 낮음");
                       self.$data.lpno = null;
@@ -527,21 +433,6 @@ function initApp() {
           }
         });
 
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-        if (!this.car_present) {
-          // 차량 감지 안 된 경우 처리
-        }
-
-        setTimeout(() => {
-          requestAnimationFrame(() => this.detectObjects());
-        }, 600);
-      } catch (error) {
-        console.error('물체 감지 실패: ', error);
-
-        setTimeout(() => {
-          requestAnimationFrame(() => this.detectObjects());
-        }, 600);
-========
           if (!this.car_present) {
             // 차량 감지 안 된 경우 처리
           }
@@ -561,7 +452,6 @@ function initApp() {
         setTimeout(() => {
           requestAnimationFrame(() => this.detectObjects());
         }, 2000);
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
       }
     },
 
@@ -608,7 +498,33 @@ function initApp() {
       } else {
         console.error('getUserMedia 사용불가.');
       }
-    }
+    },
+
+    // 결제 취소
+    isShowTransactionListModal: false,
+    transactionList: [],
+
+    openTransactionListModal() {
+        this.isShowTransactionListModal = true;
+    },
+
+    closeTransactionListModal() {
+        this.isShowTransactionListModal = false;
+    },
+
+    async getTransactions() {
+        const url = `/api/v1/merchants/${MERCHANT_TYPE_URL}/transactions`;
+        const data = await getRequest(url);
+        this.transactionList = data?.items;
+    },
+
+    cancelTransaction(transactionUniqueNo) {
+        const url = `/api/v1/merchants/${MERCHANT_TYPE_URL}/cancelled-transactions/${transactionUniqueNo}`;
+        patchRequest(url).then(() => {
+            this.getTransactions();
+        });
+    },
+    // 결제 취소
   };
 
   async function postRequest(api, data = {}) {
@@ -625,13 +541,58 @@ function initApp() {
       referrerPolicy: 'no-referrer',
       body: JSON.stringify(data)
     });
-<<<<<<<< HEAD:frontend/merchant_frontend/pos/food/js/script.js
-========
     if(!response.ok){
       throw new Error(`postRequest() : error! status: ${response.status}`);
     }
->>>>>>>> 1d9ee9d024dd9fa96d41958fcb3557f7721de306:frontend/merchant_frontend/pos/oil/js/script.js
     return response;
+  }
+
+  async function getRequest(url) {
+      try {
+          const response = await fetch(url, {
+              method: 'GET',
+              headers: {
+                  'merApiKey': MER_API_KEY,
+              },
+          });
+
+          if(response?.status !== 200) {
+              alert('거래내역 조회에 실패했습니다.');
+              console.error('Error:', response);
+              return;
+          }
+
+          const data = await response.json();
+          // console.log(data);
+          return data
+
+      } catch (error) {
+          console.error('Error:', error);
+          return;
+      }
+  }
+
+  async function patchRequest(url) {
+      try {
+          const response = await fetch(url, {
+              method: 'PATCH',
+              headers: {
+                  'merApiKey': MER_API_KEY,
+              },
+          });
+
+          if(response?.status !== 200) {
+              alert('거래 취소에 실패했습니다.');
+              console.error('Error:', response);
+              return;
+          }
+
+          alert('거래가 취소되었습니다.');
+
+      } catch (error) {
+          console.error('Error:', error);
+          return;
+      }
   }
 
   app.initANPR();
