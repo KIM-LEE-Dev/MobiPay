@@ -19,34 +19,34 @@ import com.kimnlee.memberinvitation.presentation.viewmodel.MemberInvitationViewM
 
 fun NavGraphBuilder.memberInvitationNavGraph(navController: NavHostController, context: Context, memberInvitationViewModel: MemberInvitationViewModel) {
     navigation(startDestination = "member_main/{vehicleId}", route = "memberinvitation") {
-        composable("member_main/{vehicleId}",
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None }
-        ) { backStackEntry ->
-            val vehicleId = backStackEntry.arguments?.getString("vehicleId")?.toIntOrNull() ?: -1
-//            val vehicleId = 5 //임시로 넣어둔 것
-            BottomNavigation(navController) {
-                MemberInvitationScreen(
-                    context = context,
-                    vehicleId = vehicleId,
-                    onNavigateBack = { navController.navigateUp() },
-                    onNavigateToInvitePhone = { navController.navigate("memberinvitation_phone/$vehicleId") },
-                    onNavigateToConfirmation = { navController.navigate("member_confirmation/$vehicleId") },
-                    viewModel = memberInvitationViewModel
-                )
-            }
-        }
-        composable("memberinvitation_phone/{vehicleId}",
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None }
-        ) { backStackEntry ->
-            val vehicleId = backStackEntry.arguments?.getString("vehicleId")?.toIntOrNull() ?: -1
-            MemberInvitationViaPhoneScreen(
-                onNavigateBack = { navController.navigateUp() },
-                vehicleId = vehicleId,
-                onNavigateToConfirmation = { navController.navigate("member_confirmation/$vehicleId") }
-            )
-        }
+//        composable("member_main/{vehicleId}",
+//            enterTransition = { EnterTransition.None },
+//            exitTransition = { ExitTransition.None }
+//        ) { backStackEntry ->
+//            val vehicleId = backStackEntry.arguments?.getString("vehicleId")?.toIntOrNull() ?: -1
+////            val vehicleId = 5 //임시로 넣어둔 것
+//            BottomNavigation(navController) {
+//                MemberInvitationScreen(
+//                    context = context,
+//                    vehicleId = vehicleId,
+//                    onNavigateBack = { navController.navigateUp() },
+//                    onNavigateToInvitePhone = { navController.navigate("memberinvitation_phone/$vehicleId") },
+//                    onNavigateToConfirmation = { navController.navigate("member_confirmation/$vehicleId") },
+//                    viewModel = memberInvitationViewModel
+//                )
+//            }
+//        }
+//        composable("memberinvitation_phone/{vehicleId}",
+//            enterTransition = { EnterTransition.None },
+//            exitTransition = { ExitTransition.None }
+//        ) { backStackEntry ->
+//            val vehicleId = backStackEntry.arguments?.getString("vehicleId")?.toIntOrNull() ?: -1
+//            MemberInvitationViaPhoneScreen(
+//                onNavigateBack = { navController.navigateUp() },
+//                vehicleId = vehicleId,
+//                onNavigateToConfirmation = { navController.navigate("member_confirmation/$vehicleId") }
+//            )
+//        }
         composable("member_confirmation/{vehicleId}",
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None }
@@ -72,7 +72,7 @@ fun NavGraphBuilder.memberInvitationNavGraph(navController: NavHostController, c
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
         ) {
-            InvitedScreen(
+            InvitationWaitingScreen(
                 memberInvitationViewModel = memberInvitationViewModel,
                 navController = navController
             )

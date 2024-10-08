@@ -31,6 +31,7 @@ import com.kimnlee.payment.navigation.paymentNavGraph
 import com.kimnlee.payment.presentation.viewmodel.BiometricViewModel
 import com.kimnlee.vehiclemanagement.navigation.vehicleManagementNavGraph
 import com.kimnlee.vehiclemanagement.presentation.viewmodel.VehicleManagementViewModel
+import com.onboard.onboard.navigation.onBoardNavGraph
 
 @Composable
 fun AppNavGraph(

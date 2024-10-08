@@ -146,6 +146,7 @@ fun ShowMoreScreen(
                         MenuItem("초대 대기", { navController.navigate("memberinvitation_invitationwaiting") }, emoji = "📩"),
                         MenuItem("프리오더", { }, emoji = "🍴"),
                         MenuItem("결제화면(임시)", { navController.navigate("payment_requestmanualpay?fcmData=${fcmDataJson}") }),
+                        MenuItem("온보딩(임시)", { navController.navigate("onboard") }),
                         MenuItem("로그아웃", { loginViewModel.logout() })
                     )
                 )

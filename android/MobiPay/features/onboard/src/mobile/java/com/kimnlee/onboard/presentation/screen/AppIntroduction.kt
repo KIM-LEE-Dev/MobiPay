@@ -41,7 +41,8 @@ import com.kimnlee.onboard.R
 
 @Composable
 fun AppIntroduction(
-    onNavigateOwnedCard : () -> Unit
+    onNavigateOwnedCard : () -> Unit,
+    goHome : () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -68,6 +69,9 @@ fun AppIntroduction(
                 style = MaterialTheme.typography.titleLarge,
                 color = Color.White
             )
+        }
+        Button(onClick = { goHome() }) {
+            Text(text = "홈가기")
         }
     }
 }
@@ -100,7 +104,10 @@ fun FeatureItem(feature: FeatureInfo) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = feature.imageRes, modifier = Modifier.height(60.dp).background(Color.Transparent).alignByBaseline(), fontSize = 50.sp,fontFamily = FontFamily(
+            Text(text = feature.imageRes, modifier = Modifier
+                .height(60.dp)
+                .background(Color.Transparent)
+                .alignByBaseline(), fontSize = 50.sp,fontFamily = FontFamily(
                 Font(com.kimnlee.common.R.font.emoji)
             ))
             Column (modifier = Modifier.padding(start = 12.dp)){

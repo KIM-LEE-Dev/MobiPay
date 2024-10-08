@@ -17,6 +17,7 @@ import com.kimnlee.cardmanagement.data.model.RegisterCardRequest
 import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
 import com.kimnlee.common.auth.AuthManager
 import com.kimnlee.common.network.ApiClient
+import com.kimnlee.memberinvitation.presentation.screen.InvitationWaitingScreen
 import com.kimnlee.memberinvitation.presentation.viewmodel.MemberInvitationViewModel
 import com.kimnlee.onboard.presentation.screen.AppIntroduction
 import com.kimnlee.onboard.presentation.screen.OnBoardCardRegistrationScreen
@@ -41,7 +42,7 @@ fun NavGraphBuilder.onBoardNavGraph(
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None }
         ) {
-            AppIntroduction(onNavigateOwnedCard = { navController.navigate("onboard_card_list") }
+            AppIntroduction(onNavigateOwnedCard = { navController.navigate("onboard_card_list") }, goHome={navController.navigate("home")}
             )
         }
     }
@@ -141,13 +142,14 @@ fun NavGraphBuilder.onBoardNavGraph(
         val json = Uri.decode(backStackEntry.arguments?.getString("cardInfos") ?: "")
         val cardInfos =
             Gson().fromJson<List<CardInfo>>(json, object : TypeToken<List<CardInfo>>() {}.type)
-        OnBoardMemberInvitation(
-            apiClient = apiClient,
-            cardManagementViewModel = cardManagementViewModel,
-            vehicleViewModel = vehicleManagementViewModel,
-            cardInfos = cardInfos,
-            onNavigateBack = { navController.navigateUp() },
-            finishRegister = { navController.navigate("home") }
-        )
+        InvitationWaitingScreen(navController = navController, memberInvitationViewModel = memberInvitationViewModel)
+//        OnBoardMemberInvitation(
+//            apiClient = apiClient,
+//            cardManagementViewModel = cardManagementViewModel,
+//            vehicleViewModel = vehicleManagementViewModel,
+//            cardInfos = cardInfos,
+//            onNavigateBack = { navController.navigateUp() },
+//            finishRegister = { navController.navigate("home") }
+//        )
     }
 }

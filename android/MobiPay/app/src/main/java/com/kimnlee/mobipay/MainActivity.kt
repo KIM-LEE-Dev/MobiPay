@@ -20,7 +20,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
@@ -91,6 +90,18 @@ class MainActivity : ComponentActivity() {
                 val fcmData by fcmDataFromIntent.collectAsState()
                 val registeredCards by cardManagementViewModel.registeredCards.collectAsState()
                 val isFirstIn by authManager.isFirstIn.collectAsState(initial = false)
+
+                LaunchedEffect(isLoggedIn) {
+                    if (isLoggedIn) {
+//                        if(isFirstIn) { // onboarding 작업 후 주석해제
+//                            navController.navigate("home") {
+//                                popUpTo("auth") { inclusive = true }
+//                            }
+//                        }else{
+                        navController.navigate("onboard") {
+                            popUpTo("auth") { inclusive = true }
+//                            }
+                        }}}
                 LaunchedEffect(isLoggedIn, fcmData, registeredCards) {
                     if (isLoggedIn && fcmData != null && fcmData!!.type != "payment_success" && registeredCards.isNotEmpty()) {
                         Log.d(TAG, "로그인 + FCM데이터 확인되어 수동결제 처리")
@@ -100,24 +111,8 @@ class MainActivity : ComponentActivity() {
                         Log.d(TAG, "등록 된 카드목록 JSON: $registeredCardsJson")
 
                         val fcmDataJson = Uri.encode(Gson().toJson(fcmData))
-//                        if(isFirstIn) { // onboarding 작업 후 주석해제
-//                            navController.navigate("home") {
-//                                popUpTo("auth") { inclusive = true }
-//                            }
-//                        }else{
                         navController.navigate("payment_requestmanualpay?fcmData=$fcmDataJson&registeredCards=$registeredCardsJson") {
                             popUpTo("home") { inclusive = false }
-//                            }
-                LaunchedEffect(isLoggedIn) {
-                    if (isLoggedIn) {
-//                        if(isFirstIn) { // onboarding 작업 후 주석해제
-//                            navController.navigate("home") {
-//                                popUpTo("auth") { inclusive = true }
-//                            }
-//                        }else{
-                            navController.navigate("onboard") {
-                                popUpTo("auth") { inclusive = true }
-//                            }
                         }
 
                         // 처리 후 fcmData 리셋
