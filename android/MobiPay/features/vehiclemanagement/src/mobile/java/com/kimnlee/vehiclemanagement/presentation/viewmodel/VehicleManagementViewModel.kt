@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kimnlee.common.auth.AuthManager
 import com.kimnlee.common.network.ApiClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +17,11 @@ import com.kimnlee.vehiclemanagement.data.model.CarMember
 import com.kimnlee.vehiclemanagement.data.model.VehicleItem
 import com.kimnlee.vehiclemanagement.data.model.VehicleRegistrationRequest
 import kotlinx.coroutines.flow.update
+import com.kimnlee.common.event.EventBus
+import com.kimnlee.common.event.NewNotificationEvent
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+
 
 data class Vehicle(
     val carId: Int,
@@ -28,8 +34,35 @@ data class Vehicle(
 
 class VehicleManagementViewModel(
     private val apiClient: ApiClient,
-    private val context: Context
+    private val context: Context,
+    private val authManager: AuthManager
 ) : ViewModel() {
+
+    private val _userPhoneNumber = MutableStateFlow("")
+    val userPhoneNumber: StateFlow<String> = _userPhoneNumber
+
+    init {
+        viewModelScope.launch {
+            EventBus.events.collectLatest { event ->
+                when (event) {
+                    is NewNotificationEvent -> updateNotificationStatus(event.hasNew)
+                }
+            }
+        }
+        loadUserPhoneNumber()
+    }
+
+    private fun loadUserPhoneNumber() {
+        viewModelScope.launch {
+            try {
+                val userInfo = authManager.getUserInfo()
+                _userPhoneNumber.value = userInfo.phoneNumber
+            } catch (e: Exception) {
+                Log.e("VehicleManagementViewModel", "Error loading user phone number", e)
+                _userPhoneNumber.value = ""
+            }
+        }
+    }
 
     private val vehicleService: VehicleApiService = apiClient.authenticatedApi.create(VehicleApiService::class.java)
 
@@ -132,7 +165,13 @@ class VehicleManagementViewModel(
                 val response = vehicleService.getVehicleMembers(carId)
                 if (response.isSuccessful) {
                     response.body()?.let { carMembersResponse ->
-                        _carMembers.value = carMembersResponse.items
+                        val vehicle = _vehicles.value.find { it.carId == carId }
+                        val sortedMembers = carMembersResponse.items.sortedWith(
+                            compareBy<CarMember> {
+                                it.phoneNumber != _userPhoneNumber.value
+                            }.thenBy { it.name }
+                        )
+                        _carMembers.value = sortedMembers
                     }
                 } else {
                     Log.e(TAG, "Failed to get car members: ${response.code()}")
@@ -186,6 +225,15 @@ class VehicleManagementViewModel(
     // 알림을 읽으면 호출
     fun markNotificationsAsRead() {
         updateNotificationStatus(false)
+    }
+
+    fun startRefreshingCycle(carId: Int) {
+        viewModelScope.launch {
+            repeat(7) {
+                requestCarMembers(carId)
+                delay(2000)
+            }
+        }
     }
 }
 

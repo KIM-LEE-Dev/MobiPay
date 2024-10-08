@@ -70,6 +70,8 @@ fun VehicleManagementDetailScreen(
     }
     val imageResId = CarModelImageProvider.getImageResId(vehicle?.carModel!!)
 
+    val userPhoneNumber by viewModel.userPhoneNumber.collectAsState()
+
     LaunchedEffect(vehicleId) {
         viewModel.requestCarMembers(vehicleId)
     }
@@ -120,7 +122,11 @@ fun VehicleManagementDetailScreen(
 
             CarMembersRow(
                 carMembers = carMembers,
-                onAddMember = { memberInvitationViewModel.openBottomSheet() }
+                userPhoneNumber = userPhoneNumber,
+                onAddMember = {
+                    memberInvitationViewModel.openBottomSheet()
+                    viewModel.startRefreshingCycle(vehicleId)
+                }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -220,19 +226,17 @@ fun VehicleManagementDetailScreen(
             modifier = Modifier.align(Alignment.TopEnd)
         ) {
             Box {
+                val notificationIcon = if (hasNewNotifications) {
+                    painterResource(id = com.kimnlee.common.R.drawable.bell_new)
+                } else {
+                    painterResource(id = com.kimnlee.common.R.drawable.bell)
+                }
                 Icon(
-                    imageVector = Icons.Outlined.Notifications,
+                    painter = notificationIcon,
                     contentDescription = "알림",
+                    tint = Color.Unspecified,
                     modifier = Modifier.size(30.dp)
                 )
-                if (hasNewNotifications) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .background(Color.Red, shape = CircleShape)
-                            .align(Alignment.TopEnd)
-                    )
-                }
             }
         }
     }
@@ -242,6 +246,7 @@ fun VehicleManagementDetailScreen(
 @Composable
 fun CarMembersRow(
     carMembers: List<CarMember>,
+    userPhoneNumber: String,
     onAddMember: () -> Unit
 ) {
     Row(
@@ -250,7 +255,14 @@ fun CarMembersRow(
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.Center
     ) {
-        carMembers.take(3).forEachIndexed { index, member ->
+        val sortedMembers = carMembers.sortedWith(
+            compareBy<CarMember> { member ->
+                member.phoneNumber != userPhoneNumber
+            }.thenBy { it.name }
+        )
+        val displayMembers = sortedMembers.take(3)
+
+        displayMembers.forEachIndexed { index, member ->
             Box(
                 modifier = Modifier
                     .size(44.dp)
@@ -264,7 +276,7 @@ fun CarMembersRow(
                         .fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-                if (index == 0) {
+                if (userPhoneNumber.isNotEmpty() && member.phoneNumber == userPhoneNumber) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_crown),
                         contentDescription = "오너",

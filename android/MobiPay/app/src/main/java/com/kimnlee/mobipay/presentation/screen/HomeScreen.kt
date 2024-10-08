@@ -2,62 +2,50 @@ package com.kimnlee.mobipay.presentation.screen
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.location.Geocoder
 import android.view.Gravity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.kimnlee.auth.presentation.viewmodel.LoginViewModel
 import com.kimnlee.common.BuildConfig
 import com.kimnlee.common.R
 import com.kimnlee.common.auth.repository.NaverMapRepository
-import com.kimnlee.common.network.ApiClient
 import com.kimnlee.common.network.NaverMapService
 import com.kimnlee.common.ui.theme.MobiCardBgGray
 import com.kimnlee.common.ui.theme.MobiPayTheme
 import com.kimnlee.common.ui.theme.MobiTextAlmostBlack
+import com.kimnlee.common.ui.theme.MobiTextDarkGray
+import com.kimnlee.common.ui.theme.pMedium
+import com.kimnlee.common.ui.theme.tossEmoji
+import com.kimnlee.common.utils.CarModelImageProvider
 import com.kimnlee.mobipay.presentation.viewmodel.HomeViewModel
+import com.kimnlee.vehiclemanagement.data.model.CarMember
+import com.kimnlee.vehiclemanagement.data.model.VehicleItem
 import com.mapbox.navigation.core.internal.extensions.navigationListOf
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraUpdate
@@ -65,11 +53,9 @@ import com.naver.maps.map.MapView
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
 import kotlinx.coroutines.runBlocking
-import retrofit2.Retrofit
-import java.util.Locale
 
-private val YOUR_CLIENT_SECRET = BuildConfig.NAVER_MAP_CLIENT_SECRET
-
+private val NAVER_MAP_CLIENT_SECRET = BuildConfig.NAVER_MAP_CLIENT_SECRET
+private const val TAG = "HomeScreen"
 @Composable
 fun HomeScreen(
     loginViewModel: LoginViewModel,
@@ -80,6 +66,20 @@ fun HomeScreen(
     val isLoggedIn by loginViewModel.isLoggedIn.collectAsState()
     var lastLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
     val naverMapService by homeViewModel.naverMapService.collectAsState()
+    val hasNewNotifications by homeViewModel.hasNewNotifications.collectAsState()
+    val vehicles by homeViewModel.vehicles.collectAsState()
+    val carMembers by homeViewModel.carMembers.collectAsState()
+    val currentVehicle = vehicles.firstOrNull()
+    val userName by homeViewModel.userName.collectAsState()
+    val userPhoneNumber by homeViewModel.userPhoneNumber.collectAsState()
+
+
+
+    LaunchedEffect(vehicles) {
+        if (vehicles.isNotEmpty()) {
+            homeViewModel.getCarMembers(vehicles.first().carId)
+        }
+    }
 
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) {
@@ -93,6 +93,10 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) {
         lastLocation = getLastLocation(context)
+        snapshotFlow { navController.currentBackStackEntry }
+            .collect {
+                homeViewModel.refreshVehicles()
+            }
     }
 
     MobiPayTheme {
@@ -117,7 +121,7 @@ fun HomeScreen(
                         .padding(top = 3.dp)
                 )
                 Text(
-                    text = " 원영님, 반가워요!",
+                    text = " ${userName} 님, 반가워요!",
                     style = MaterialTheme.typography.headlineMedium,
                     color = MobiTextAlmostBlack,
                     fontSize = 24.sp,
@@ -132,16 +136,32 @@ fun HomeScreen(
                         modifier = Modifier
                             .padding(end = 8.dp)
                     ){
-                        Image(
-                            painter = painterResource(id = R.drawable.bell_new),
-                            contentDescription = "알림 아이콘",
-                            contentScale = ContentScale.Fit
-                        )
+                        IconButton(
+                            onClick = {
+                                navController.navigate("notification_main")
+                                homeViewModel.markNotificationsAsRead()
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            val notificationIcon = if (hasNewNotifications) {
+                                painterResource(id = R.drawable.bell_new)
+                            } else {
+                                painterResource(id = R.drawable.bell)
+                            }
+                            Icon(
+                                painter = notificationIcon,
+                                contentDescription = "알림",
+                                tint = Color.Unspecified
+                            )
+                        }
                     }
                 }
 
             }
             Spacer(modifier = Modifier.height(16.dp))
+
+
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -153,101 +173,141 @@ fun HomeScreen(
                         .align(Alignment.CenterHorizontally)
                 ) {
                     Spacer(modifier = Modifier.height(20.dp))
+
+                    var firstVehicle: VehicleItem? = null
+                    var carImgId = R.drawable.no_car
+
+                    if(vehicles.isNotEmpty()){
+                        firstVehicle = vehicles.first()
+                        carImgId = CarModelImageProvider.getImageResId(firstVehicle.carModel)
+                    }
+
                     Image(
-//                        painter = painterResource(id = com.kimnlee.vehiclemanagement.R.drawable.genesis_g90),
-                        painter = painterResource(id = com.kimnlee.mobipay.R.drawable.gv80),
+                        painter = painterResource(id = carImgId),
                         contentDescription = "차량 이미지",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(6.dp)),
+                        modifier =
+                        if(firstVehicle != null){
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(6.dp))
+                        }else{
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 80.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                        },
                         contentScale = ContentScale.FillWidth
                     )
                     Spacer(modifier = Modifier.height(18.dp))
-                    TextOnLP()
-
-                    Spacer(modifier = Modifier.height(28.dp))
-                    CarUserIconsRow()
+                    if(firstVehicle != null) {
+                        TextOnLP(formatLicensePlate(firstVehicle.number))
+                        Spacer(modifier = Modifier.height(28.dp))
+                        CarUserIconsRow(carMembers = carMembers, userPhoneNumber = userPhoneNumber)
+                    }else{
+                        Row(
+                            modifier = Modifier
+                                .padding(bottom = 8.dp)
+                                .align(Alignment.CenterHorizontally)
+                        ){
+                            Text(
+                                text = "등록된 차량이 없어요!",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MobiTextDarkGray,
+                                fontSize = 24.sp,
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "\uD83E\uDD14",
+                                fontFamily = tossEmoji,
+                                fontSize = 24.sp,
+                            )
+                        }
+                    }
                 }
             }
+
             Spacer(modifier = Modifier.height(20.dp))
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(MobiCardBgGray)
-                    .padding(24.dp, 18.dp, 24.dp, 24.dp),
-            ) {
-                Column(
+            var enteredPaidParkingLot = false
+            enteredPaidParkingLot = true
+            if(enteredPaidParkingLot){
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(MobiCardBgGray)
+                        .padding(24.dp, 18.dp, 24.dp, 24.dp),
                 ) {
-                    Row(
-                    ){
-                        Text(
-                            text = "\uD83C\uDD7F",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontFamily = FontFamily(Font(R.font.emoji)),
-                            fontSize = 22.sp,
-                            modifier = Modifier
-                                .padding(top = 0.dp)
-                        )
-                        Text(
-                            text = "  유료주차장 이용중",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MobiTextAlmostBlack,
-                            fontSize = 21.sp,
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(17.dp))
                     Column(
                         modifier = Modifier
-                            .padding(start = 5.dp, end = 5.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                    ){
-                        Text(
-                            text = "여의도 더현대 지하주차장",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MobiTextAlmostBlack,
-                            fontSize = 22.5.sp,
-                        )
-                        Spacer(modifier = Modifier.height(7.dp))
-                        Text(
-                            text = "입차: 2024년 9월 29일 오전 10시 11분",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MobiTextAlmostBlack,
-                        )
-                        Spacer(modifier = Modifier.height(21.dp))
-                        Text(
-                            text = "2시간 14분 경과",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MobiTextAlmostBlack,
-                            fontSize = 19.sp,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "예상 요금  8,000원",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MobiTextAlmostBlack,
-                            fontSize = 19.sp,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                            .fillMaxWidth()
+                    ) {
+                        Row(
+                        ){
+                            Text(
+                                text = "\uD83C\uDD7F",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontFamily = FontFamily(Font(R.font.emoji)),
+                                fontSize = 22.sp,
+                                modifier = Modifier
+                                    .padding(top = 0.dp)
+                            )
+                            Text(
+                                text = "  유료주차장 이용중",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MobiTextAlmostBlack,
+                                fontSize = 21.sp,
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(17.dp))
+                        Column(
+                            modifier = Modifier
+                                .padding(start = 5.dp, end = 5.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                        ){
+                            Text(
+                                text = "여의도 더현대 지하주차장",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MobiTextAlmostBlack,
+                                fontSize = 22.5.sp,
+                            )
+                            Spacer(modifier = Modifier.height(7.dp))
+                            Text(
+                                text = "입차: 2024년 9월 29일 오전 10시 11분",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MobiTextAlmostBlack,
+                            )
+                            Spacer(modifier = Modifier.height(21.dp))
+                            Text(
+                                text = "2시간 14분 경과",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MobiTextAlmostBlack,
+                                fontSize = 19.sp,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "예상 요금  8,000원",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MobiTextAlmostBlack,
+                                fontSize = 19.sp,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
+                Spacer(modifier = Modifier.height(20.dp))
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(20.dp))
-                    .height(300.dp)
+                    .height(262.dp)
                     .background(MobiCardBgGray)
-                    .padding(24.dp, 18.dp, 24.dp, 12.dp),
+                    .padding(24.dp, 18.dp, 24.dp, 10.dp),
             ) {
                 Column(
                     modifier = Modifier
@@ -265,7 +325,7 @@ fun HomeScreen(
                                 .padding(top = 0.dp)
                         )
                         Text(
-                            text = "  여기에 주차했어요!",
+                            text = if(lastLocation != null) "  여기에 주차했어요!" else "  주차하면 여기에 표시 돼요!",
                             style = MaterialTheme.typography.headlineMedium,
                             color = MobiTextAlmostBlack,
                             fontSize = 21.sp,
@@ -290,23 +350,24 @@ fun NaverMapView(lastLocation: Pair<Double, Double>?, naverMapService: NaverMapS
     val context = LocalContext.current
     var mapView = remember { MapView(context) }
 
-    lateinit var address : String
+    var address = "안드로이드 오토에 연결해야 저장할 수 있어요."
     // 주차 정보가 없으면 기본 위치 표시
     val lastLocationLatLng = lastLocation?.let { LatLng(it.first, it.second) } ?: LatLng(
-        37.526665, 126.927127)
+        37.526665, 126.927127) // 37.526665, 126.927127
     runBlocking {
-        val repository = NaverMapRepository("81dn8nvzim", YOUR_CLIENT_SECRET, naverMapService)
-        address = repository.getAddressFromCoords(lastLocationLatLng)
+        val repository = NaverMapRepository("81dn8nvzim", NAVER_MAP_CLIENT_SECRET, naverMapService)
+        if(lastLocation != null)
+            address = repository.getAddressFromCoords(lastLocationLatLng)
     }
 
-Column {
-    AndroidView(
-        factory = { mapView },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp),
-        update = { view ->
-            view.getMapAsync { naverMap ->
+    Column {
+        AndroidView(
+            factory = { mapView },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(160.dp),
+            update = { view ->
+                view.getMapAsync { naverMap ->
 
                 naverMap.moveCamera(CameraUpdate.scrollTo(lastLocationLatLng))
 
@@ -326,64 +387,28 @@ Column {
                     isScaleBarEnabled = false
                 }
 
+                }
             }
-        }
-    )
-
-    Text(text = address, fontSize = 16.sp, letterSpacing = 0.1.sp, lineHeight = 13.sp)
-}
-}
-
-@Composable
-fun CarUserIconsRow() {
-    val userImages = listOf(
-        painterResource(id = R.drawable.wy2),
-        painterResource(id = R.drawable.hani2),
-        painterResource(id = R.drawable.iseo2),
-    )
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        userImages.forEach { painter ->
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-            ) {
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                )
-            }
-        }
-
-        Box(
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = address,
+            fontSize = 16.sp,
+            letterSpacing = 0.1.sp,
+            lineHeight = 13.sp,
+            fontFamily = pMedium,
+            color = MobiTextDarkGray,
+            textAlign = TextAlign.Center,
             modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.plus),
-                contentDescription = "멤버 추가 버튼",
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFEEEEEE))
-                    .padding(10.dp)
-            )
-        }
+                .fillMaxWidth()
+                .align(Alignment.CenterHorizontally)
+        )
     }
 }
 
+
 @Composable
-fun TextOnLP() {
+fun TextOnLP(number: String) {
     val aspectRatio = 949f / 190f
     Box(
         contentAlignment = Alignment.Center,
@@ -408,7 +433,7 @@ fun TextOnLP() {
                     .padding(start = 22.dp, top = 4.dp, end = 2.dp, bottom = 2.dp)
             ){
                 Text(
-                    text = "383모 3838",
+                    text = number,
                     color = Color.Black,
                     fontSize = 23.sp,
                     fontFamily = FontFamily(Font(R.font.nsrextrabold)),
@@ -430,4 +455,79 @@ private fun getLastLocation(context: Context): Pair<Double, Double>? {
     } else {
         null
     }
+}
+
+@Composable
+fun CarUserIconsRow(carMembers: List<CarMember>, userPhoneNumber: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        carMembers.take(3).forEachIndexed { index, member ->
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(Color.Transparent)
+            ) {
+                AsyncImage(
+                    model = member.picture,
+                    contentDescription = member.name,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                if (index == 0) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_crown),
+                        contentDescription = "오너",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .align(Alignment.TopStart)
+                            .offset(x = (-10).dp, y = (-10).dp)
+                            .graphicsLayer(rotationZ = -45f)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+
+        if (carMembers.size > 3) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(Color.LightGray),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "+${carMembers.size - 3}",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFEEEEEE)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add member",
+                tint = Color.Black
+            )
+        }
+    }
+}
+
+fun formatLicensePlate(number: String): String {
+    return number.reversed().chunked(4)
+        .joinToString(" ")
+        .reversed()
 }

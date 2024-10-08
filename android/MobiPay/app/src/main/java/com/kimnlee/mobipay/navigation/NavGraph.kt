@@ -3,24 +3,17 @@ package com.kimnlee.mobipay.navigation
 import android.app.Application
 import android.bluetooth.BluetoothManager
 import android.content.Context
-import android.net.Uri
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.kimnlee.auth.navigation.authNavGraph
-import com.kimnlee.payment.presentation.viewmodel.BiometricViewModel
 import com.kimnlee.auth.presentation.viewmodel.LoginViewModel
-import com.kimnlee.cardmanagement.data.model.RegisteredCard
-import com.kimnlee.cardmanagement.data.model.CardInfo
 import com.kimnlee.cardmanagement.navigation.cardManagementNavGraph
 import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
 import com.kimnlee.common.auth.AuthManager
@@ -35,11 +28,9 @@ import com.kimnlee.mobipay.presentation.viewmodel.ShowMoreViewModel
 import com.kimnlee.notification.navigation.notificationNavGraph
 import com.kimnlee.payment.data.repository.PaymentRepository
 import com.kimnlee.payment.navigation.paymentNavGraph
-import com.kimnlee.payment.presentation.screen.ManualPaymentScreen
+import com.kimnlee.payment.presentation.viewmodel.BiometricViewModel
 import com.kimnlee.vehiclemanagement.navigation.vehicleManagementNavGraph
 import com.kimnlee.vehiclemanagement.presentation.viewmodel.VehicleManagementViewModel
-import com.onboard.onboard.navigation.onBoardNavGraph
-import kotlin.math.log
 
 @Composable
 fun AppNavGraph(
@@ -52,12 +43,12 @@ fun AppNavGraph(
     paymentRepository: PaymentRepository
 ) {
     val application = context as Application
-    val homeViewModel = HomeViewModel(apiClient)
     val biometricViewModel = BiometricViewModel(application)
     val cardManagementViewModel = CardManagementViewModel(authManager, apiClient)
-    val vehicleManagementViewModel = VehicleManagementViewModel(apiClient, context)
+    val vehicleManagementViewModel = VehicleManagementViewModel(apiClient, context, authManager)
     val showMoreViewModel = ShowMoreViewModel(authManager)
     val isLoggedIn by loginViewModel.isLoggedIn.collectAsState()
+    val homeViewModel = HomeViewModel(apiClient, authManager)
     val isFirstIn by loginViewModel.isFirstIn.collectAsState()
 
     LaunchedEffect(loginViewModel) {

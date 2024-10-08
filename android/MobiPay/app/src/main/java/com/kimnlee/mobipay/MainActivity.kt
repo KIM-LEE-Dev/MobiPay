@@ -19,6 +19,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
@@ -32,6 +34,7 @@ import com.kimnlee.memberinvitation.presentation.viewmodel.MemberInvitationViewM
 import com.kimnlee.mobipay.navigation.AppNavGraph
 import com.kimnlee.payment.PaymentApprovalReceiver
 import com.kimnlee.payment.data.repository.PaymentRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 
 private const val TAG = "MainActivity"
@@ -48,7 +51,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var backgroundLocationPermissionLauncher: ActivityResultLauncher<String>
     private var alertDialog: AlertDialog? = null
     private lateinit var paymentRepository: PaymentRepository
-//    private val fcmDataFromIntent = mutableStateOf<FCMData?>(null)
+
     private val fcmDataFromIntent = MutableStateFlow<FCMData?>(null)
 
 
@@ -85,12 +88,26 @@ class MainActivity : ComponentActivity() {
             MobiPayTheme {
                 val navController = rememberNavController()
                 val isLoggedIn by authManager.isLoggedIn.collectAsState(initial = false)
-//                val fcmData by paymentRepository.fcmDataToNavigate.collectAsState()
                 val fcmData by fcmDataFromIntent.collectAsState()
                 val registeredCards by cardManagementViewModel.registeredCards.collectAsState()
-//                val fcmData = fcmDataFromIntent.value
                 val isFirstIn by authManager.isFirstIn.collectAsState(initial = false)
+                LaunchedEffect(isLoggedIn, fcmData, registeredCards) {
+                    if (isLoggedIn && fcmData != null && fcmData!!.type != "payment_success" && registeredCards.isNotEmpty()) {
+                        Log.d(TAG, "로그인 + FCM데이터 확인되어 수동결제 처리")
 
+                        val registeredCardsJson = Uri.encode(Gson().toJson(registeredCards))
+
+                        Log.d(TAG, "등록 된 카드목록 JSON: $registeredCardsJson")
+
+                        val fcmDataJson = Uri.encode(Gson().toJson(fcmData))
+//                        if(isFirstIn) { // onboarding 작업 후 주석해제
+//                            navController.navigate("home") {
+//                                popUpTo("auth") { inclusive = true }
+//                            }
+//                        }else{
+                        navController.navigate("payment_requestmanualpay?fcmData=$fcmDataJson&registeredCards=$registeredCardsJson") {
+                            popUpTo("home") { inclusive = false }
+//                            }
                 LaunchedEffect(isLoggedIn) {
                     if (isLoggedIn) {
 //                        if(isFirstIn) { // onboarding 작업 후 주석해제
@@ -102,29 +119,42 @@ class MainActivity : ComponentActivity() {
                                 popUpTo("auth") { inclusive = true }
 //                            }
                         }
+
+                        // 처리 후 fcmData 리셋
+                        fcmDataFromIntent.value = null
                     }
                 }
 
                 LaunchedEffect(isLoggedIn, fcmData, registeredCards) {
-                    if (isLoggedIn && fcmData != null && registeredCards.isNotEmpty()) {
-                        Log.d(TAG, "로그인 + FCM데이터 확인되어 수동결제 처리")
+                    Log.d(TAG, "onCreate: 여긴 불림")
+                    if (isLoggedIn && fcmData != null && fcmData!!.type == "payment_successful") {
+                        Log.d(TAG, "결제완료 화면 넘어감")
 
                         val registeredCardsJson = Uri.encode(Gson().toJson(registeredCards))
 
-                        Log.d(TAG, "Registered Cards JSON: $registeredCardsJson")
-
                         val fcmDataJson = Uri.encode(Gson().toJson(fcmData))
-                        navController.navigate("payment_requestmanualpay?fcmData=$fcmDataJson&registeredCards=$registeredCardsJson") {
+                        navController.navigate("payment_successful?fcmData=$fcmDataJson") {
                             popUpTo("home") { inclusive = false }
                         }
 
-                        // Reset fcmData after handling
+                        // 처리 후 fcmData 리셋
+                        fcmDataFromIntent.value = null
+                    }else if (isLoggedIn && fcmData != null && fcmData!!.type == "transactionCancel"){
+                        Log.d(TAG, "결제취소 성공 화면으로 이동")
+
+                        val fcmDataJson = Uri.encode(Gson().toJson(fcmData))
+                        navController.navigate("payment_cancelled?fcmData=$fcmDataJson") {
+                            popUpTo("home") { inclusive = false }
+                        }
+
+                        // 처리 후 fcmData 리셋
                         fcmDataFromIntent.value = null
                     }else{
-                        Log.d(TAG, "onCreate: 카드가 NULL인지, 뭐가 NULL 이네 ")
+                        Log.d(TAG, "onCreate: 여기도 불림")
+                        if(fcmData != null)
+                            Log.d(TAG, "onCreate: fcmData 타입 = ${fcmData!!.type}")
                     }
                 }
-
 
                 AppNavGraph(
                     navController,
@@ -159,6 +189,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        Log.d(TAG, "onResume called")
         requestPermissions()
     }
 
@@ -179,6 +210,7 @@ class MainActivity : ComponentActivity() {
 
         permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         permissions.add(Manifest.permission.CAMERA)
+        permissions.add(Manifest.permission.RECORD_AUDIO)
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -186,8 +218,6 @@ class MainActivity : ComponentActivity() {
 
         if (permissions.isNotEmpty()) {
             permissionLauncher.launch(permissions.toTypedArray())
-        } else {
-
         }
     }
 
@@ -197,11 +227,10 @@ class MainActivity : ComponentActivity() {
             ActivityResultContracts.RequestPermission()
         ) { isGranted ->
             if (isGranted) {
-                Log.d(TAG, "Background location permission granted")
+                Log.d(TAG, "백그라운드 위치 권한 허용됨")
                 alertDialog?.dismiss()
-                // Proceed with your app's logic now that permission is granted
             } else {
-                Log.d(TAG, "Background location permission denied")
+                Log.d(TAG, "백그라운드 위치 권한 거절됨")
             }
         }
     }
@@ -214,7 +243,7 @@ class MainActivity : ComponentActivity() {
                     backgroundLocationPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
                 }
             } else {
-                Log.d(TAG, "Background location permission already granted")
+                Log.d(TAG, "백그라운드 권한 이미 허용됨")
             }
         }
     }
@@ -261,7 +290,7 @@ class MainActivity : ComponentActivity() {
 
     private fun handleIntent(intent: Intent?) {
         intent?.data?.let { uri ->
-            if (uri.scheme == "mobipay" && uri.host == "payment_requestmanualpay") {
+            if (uri.scheme == "mobipay" && (uri.host == "payment_requestmanualpay" || uri.host == "payment_successful"|| uri.host == "payment_cancelled")) {
                 val fcmDataJson = uri.getQueryParameter("fcmData")
                 Log.d(TAG, "handleIntent: $fcmDataJson")
                 fcmDataJson?.let {
@@ -296,6 +325,11 @@ class MainActivity : ComponentActivity() {
             unregisterReceiver(it)
             paymentApprovalReceiver = null
         }
+    }
+
+    override fun onPause() {
+        Log.d(TAG, "onPause called")
+        super.onPause()
     }
 
 }

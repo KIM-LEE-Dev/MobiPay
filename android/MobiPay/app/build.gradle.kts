@@ -15,7 +15,7 @@ android {
         minSdk = 28
         maxSdk = 34
         targetSdk = 34
-        versionCode = 9
+        versionCode = 11
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -84,6 +84,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     // ShowMoreScreen에서 asyncImage 컴포즈를 사용하기 위해
     implementation(libs.coil.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

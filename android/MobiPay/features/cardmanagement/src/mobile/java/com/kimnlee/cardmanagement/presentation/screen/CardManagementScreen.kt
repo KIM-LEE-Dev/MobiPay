@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.res.ResourcesCompat
 import com.kimnlee.cardmanagement.data.model.RegisteredCard
 import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
+import com.kimnlee.cardmanagement.presentation.viewmodel.MyDataConsentStatus
 import com.kimnlee.common.R
 import com.kimnlee.common.ui.theme.MobiTextAlmostBlack
 import com.kimnlee.common.utils.formatCardNumber
@@ -66,6 +67,7 @@ import com.kimnlee.common.utils.formatCardNumber
 @Composable
 fun CardManagementScreen(
     onNavigateToOwnedCards: () -> Unit,
+    onNavigateToMyDataAgreement: () -> Unit,
     onNavigateToCardDetail: (Int) -> Unit,
     viewModel: CardManagementViewModel,
 ) {
@@ -130,7 +132,23 @@ fun CardManagementScreen(
                 )
             }
             item {
-                AddCardButton { onNavigateToOwnedCards() }
+                AddCardButton {
+                    viewModel.checkMyDataConsentStatus { status ->
+                        when (status) {
+                            is MyDataConsentStatus.Fetched -> {
+                                if (status.isConsented) {
+                                    onNavigateToOwnedCards()
+                                } else {
+                                    onNavigateToMyDataAgreement()
+                                }
+                            }
+                            is MyDataConsentStatus.Error -> {
+                                // 에러 처리 (예: 토스트 메시지 표시)
+                            }
+                            else -> {} // Unknown 상태 처리
+                        }
+                    }
+                }
             }
         }
     }
@@ -157,15 +175,15 @@ fun CardItem(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(end = 150.dp, bottom = 30.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(start = 30.dp, bottom = 50.dp),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.Start
         ) {
             TextWithShadow(
                 text = formatCardNumber(card.cardNo),
                 style = MaterialTheme.typography.titleLarge
             )
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(40.dp))
             TextWithShadow(
                 text = "VALID THRU ${formatExpiryDate(card.cardExpriyDate)}",
                 style = MaterialTheme.typography.bodyMedium

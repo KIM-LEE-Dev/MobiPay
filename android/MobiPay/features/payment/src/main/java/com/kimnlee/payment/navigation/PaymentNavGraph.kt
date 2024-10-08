@@ -1,6 +1,5 @@
 package com.kimnlee.payment.navigation
 
-import PaymentSucceedScreen
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.navigation.NavGraphBuilder
@@ -18,8 +17,10 @@ import com.kimnlee.payment.data.dummyTransactions
 import com.kimnlee.payment.data.model.MerchantTransaction
 import com.kimnlee.payment.data.repository.PaymentRepository
 import com.kimnlee.payment.presentation.screen.ManualPaymentScreen
+import com.kimnlee.payment.presentation.screen.PaymentCancelScreen
 import com.kimnlee.payment.presentation.screen.PaymentDetailListScreen
 import com.kimnlee.payment.presentation.screen.PaymentDetailScreen
+import com.kimnlee.payment.presentation.screen.PaymentSuccessfulScreen
 import com.kimnlee.payment.presentation.viewmodel.BiometricViewModel
 
 
@@ -66,14 +67,6 @@ fun NavGraphBuilder.paymentNavGraph(
                 )
             }
         }
-        composable("paymentsucceed",
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None },
-            deepLinks = listOf(navDeepLink { uriPattern = "mobipay://paymentsucceed" })
-        ) {
-            PaymentSucceedScreen(navController)
-        }
-
         composable(
             route = "payment_requestmanualpay?fcmData={fcmData}&registeredCards={registeredCards}",
             enterTransition = { EnterTransition.None },
@@ -82,7 +75,6 @@ fun NavGraphBuilder.paymentNavGraph(
                 navArgument("fcmData") { type = NavType.StringType; nullable = true },
                 navArgument("registeredCards") { type = NavType.StringType; nullable = true }
             ),
-//            deepLinks = listOf(navDeepLink { uriPattern = "mobipay://payment_requestmanualpay{?fcmData}" })
             deepLinks = listOf(navDeepLink { uriPattern = "mobipay://payment_requestmanualpay{?fcmData}&{registeredCards}" })
         ) { backStackEntry ->
             val fcmDataJson = backStackEntry.arguments?.getString("fcmData")
@@ -96,6 +88,40 @@ fun NavGraphBuilder.paymentNavGraph(
                 fcmData = fcmData,
                 paymentRepository = paymentRepository,
                 registeredCards = registeredCardsJson!!
+            )
+        }
+        composable(
+            route = "payment_successful?fcmData={fcmData}",
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            arguments = listOf(
+                navArgument("fcmData") { type = NavType.StringType; nullable = true }
+            ),
+            deepLinks = listOf(navDeepLink { uriPattern = "mobipay://payment_successful{?fcmData}" })
+        ) { backStackEntry ->
+            val fcmDataJson = backStackEntry.arguments?.getString("fcmData")
+            val fcmData = fcmDataJson?.let { Gson().fromJson(it, FCMData::class.java) }
+
+            PaymentSuccessfulScreen(
+                navController = navController,
+                fcmData = fcmData
+            )
+        }
+        composable(
+            route = "payment_cancelled?fcmData={fcmData}",
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            arguments = listOf(
+                navArgument("fcmData") { type = NavType.StringType; nullable = true }
+            ),
+            deepLinks = listOf(navDeepLink { uriPattern = "mobipay://payment_cancelled{?fcmData}" })
+        ) { backStackEntry ->
+            val fcmDataJson = backStackEntry.arguments?.getString("fcmData")
+            val fcmData = fcmDataJson?.let { Gson().fromJson(it, FCMData::class.java) }
+
+            PaymentCancelScreen(
+                navController = navController,
+                fcmData = fcmData
             )
         }
     }
