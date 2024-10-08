@@ -37,7 +37,7 @@ import com.kimnlee.common.utils.formatCardNumber
 fun OnBoardOwnedCardListScreen(
     viewModel: CardManagementViewModel,
     onNavigateBack: () -> Unit,
-    onNavigateToRegistration: (List<OwnedCard>) -> Unit
+    onNavigateToRegistration: (List<OwnedCard>) -> Unit,
 ) {
     val ownedCardUiState by viewModel.ownedCardUiState.collectAsState()
     var selectedCards by remember { mutableStateOf(setOf<OwnedCard>()) }

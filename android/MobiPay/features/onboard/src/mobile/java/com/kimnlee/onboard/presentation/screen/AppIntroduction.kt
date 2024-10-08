@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +25,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,29 +34,40 @@ import com.kimnlee.common.ui.theme.MobiCardBgGray
 import com.kimnlee.common.ui.theme.MobiTextAlmostBlack
 import com.kimnlee.common.ui.theme.MobiTextDarkGray
 import com.kimnlee.cardmanagement.R as CardR
-import com.kimnlee.common.R
+import com.kimnlee.common.R as CommonR
+import com.kimnlee.common.ui.theme.MobiBgGray
+import com.kimnlee.common.ui.theme.MobiBlue
+import com.kimnlee.onboard.R
 
 @Composable
 fun AppIntroduction(
-    goOwnerPage : () -> Unit,
-    goMemberPage : () -> Unit
+    onNavigateOwnedCard : () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Transparent)
-            .padding(vertical = 16.dp),
+            .background(MobiBgGray)
+            .padding(vertical = 40.dp),
     ) {
         HeaderSection()
-        FeatureItem(FeatureInfo("차량을 등록해주세요.", "Track your daily movement", R.drawable.ray))
+        FeatureItem(FeatureInfo("먼저, 카드를 등록해주세요.", "First, please register your cards", "\uD83D\uDCB3"))
         Spacer(modifier = Modifier.padding(12.dp))
-        FeatureItem(FeatureInfo("카드를 등록해주세요.", "Track all your workouts", CardR.drawable.bc_kully))
+//        FeatureItem(FeatureInfo("그리고, 모비페이로 편해지세요.", "Enjoy MobiPay with the members","\uD83C\uDD93"))
         Spacer(modifier = Modifier.weight(1f))
-        Button(onClick = goOwnerPage, modifier = Modifier.fillMaxWidth()) {
-            Text(text = "오너")
-        }
-        Button(onClick = goMemberPage, modifier = Modifier.fillMaxWidth()) {
-            Text(text = "멤버")
+
+        Button(onClick = onNavigateOwnedCard,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3182F6)),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text(
+                text = "모비 페이 시작 하기",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White
+            )
         }
     }
 }
@@ -66,11 +80,7 @@ fun HeaderSection() {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Welcome to MobiPay",
-            style = MaterialTheme.typography.displaySmall,
-            modifier = Modifier.padding(vertical = 32.dp)
-        )
+        Image(painter = painterResource(id = CommonR.drawable.ic_mobipay), contentDescription ="로고" )
         Spacer(modifier = Modifier.height(8.dp))
     }
 }
@@ -90,16 +100,10 @@ fun FeatureItem(feature: FeatureInfo) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = feature.imageRes),
-                contentDescription = feature.title,
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Fit
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
+            Text(text = feature.imageRes, modifier = Modifier.height(60.dp).background(Color.Transparent).alignByBaseline(), fontSize = 50.sp,fontFamily = FontFamily(
+                Font(com.kimnlee.common.R.font.emoji)
+            ))
+            Column (modifier = Modifier.padding(start = 12.dp)){
                 Text(
                     text = feature.title,
                     color = MobiTextAlmostBlack,
@@ -119,5 +123,5 @@ fun FeatureItem(feature: FeatureInfo) {
 data class FeatureInfo(
     val title: String,
     val description: String,
-    val imageRes: Int,
+    val imageRes: String,
 )

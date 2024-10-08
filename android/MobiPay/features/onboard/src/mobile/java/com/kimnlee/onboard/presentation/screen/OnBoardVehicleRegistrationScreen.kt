@@ -43,6 +43,9 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.zIndex
+import com.kimnlee.cardmanagement.data.model.CardInfo
+import com.kimnlee.cardmanagement.data.model.RegisterCardRequest
+import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
 import com.kimnlee.common.ui.theme.*
 import com.kimnlee.common.utils.CarModelImageProvider
 import com.kimnlee.vehiclemanagement.data.model.LicensePlateAnalyzer
@@ -53,10 +56,12 @@ private const val TAG = "OnBoardVehicleRegistrationScreen"
 // 온보드 차량 등록
 @Composable
 fun OnBoardVehicleRegistrationScreen(
-    viewModel: VehicleManagementViewModel,
+    vehicleViewModel: VehicleManagementViewModel,
+    cardManagementViewModel: CardManagementViewModel,
     apiClient: ApiClient,
+    cardsToRegister: List<RegisterCardRequest>,
     onNavigateBack: () -> Unit,
-    onNavigateOwnedCard : () -> Unit
+    finishRegister : () -> Unit
 ) {
     var licensePlate by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -222,12 +227,8 @@ fun OnBoardVehicleRegistrationScreen(
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(10.dp))
-
-                Row(
-
-                ){
+                Row{
                     Text(
                         text = "차종",
                         fontFamily = defaultFont,
@@ -396,7 +397,7 @@ fun OnBoardVehicleRegistrationScreen(
 
                 Button(
                     onClick = {
-                        onNavigateOwnedCard()
+                        showDialog = true
                     },
                     modifier = Modifier
                         .heightIn(min = 48.dp)
@@ -504,9 +505,11 @@ fun OnBoardVehicleRegistrationScreen(
                     confirmButton = {
                         Button(
                             onClick = {
-                                viewModel.registerVehicle(licensePlate, selectedVehicleType)
                                 showDialog = false
-                                onNavigateBack()
+                                vehicleViewModel.registerVehicle(licensePlate, selectedVehicleType) // 차량 등록
+                                // 카드 등록
+                                cardManagementViewModel.registerCards(cardsToRegister)
+                                finishRegister() // 등록 종료 및 home 으로 이동
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MobiBlue,
@@ -514,7 +517,7 @@ fun OnBoardVehicleRegistrationScreen(
                             ),
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("확인",
+                            Text("차량 등록 완료",
                                 fontFamily = FontFamily(Font(com.kimnlee.common.R.font.pbold))
                             )
                         }

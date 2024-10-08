@@ -23,8 +23,8 @@ fun NavGraphBuilder.memberInvitationNavGraph(navController: NavHostController, c
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None }
         ) { backStackEntry ->
-//            val vehicleId = backStackEntry.arguments?.getString("vehicleId")?.toIntOrNull() ?: -1
-            val vehicleId = 5 //임시로 넣어둔 것
+            val vehicleId = backStackEntry.arguments?.getString("vehicleId")?.toIntOrNull() ?: -1
+//            val vehicleId = 5 //임시로 넣어둔 것
             BottomNavigation(navController) {
                 MemberInvitationScreen(
                     context = context,
