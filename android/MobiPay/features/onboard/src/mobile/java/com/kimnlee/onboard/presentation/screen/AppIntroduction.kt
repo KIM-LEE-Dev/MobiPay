@@ -1,32 +1,43 @@
-package com.kimnlee.mobipay.presentation.components
+package com.kimnlee.onboard.presentation.screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import com.kimnlee.mobipay.R
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kimnlee.common.ui.theme.MobiCardBgGray
 import com.kimnlee.common.ui.theme.MobiTextAlmostBlack
 import com.kimnlee.common.ui.theme.MobiTextDarkGray
+import com.kimnlee.cardmanagement.R as CardR
+import com.kimnlee.common.R
 
 @Composable
-fun OnBoardAppIntroduction() {
+fun AppIntroduction(
+    goOwnerPage : () -> Unit,
+    goMemberPage : () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -36,8 +47,14 @@ fun OnBoardAppIntroduction() {
         HeaderSection()
         FeatureItem(FeatureInfo("차량을 등록해주세요.", "Track your daily movement", R.drawable.ray))
         Spacer(modifier = Modifier.padding(12.dp))
-        FeatureItem(FeatureInfo("카드를 등록해주세요.", "Track all your workouts", com.kimnlee.cardmanagement.R.drawable.bc_kully))
+        FeatureItem(FeatureInfo("카드를 등록해주세요.", "Track all your workouts", CardR.drawable.bc_kully))
         Spacer(modifier = Modifier.weight(1f))
+        Button(onClick = goOwnerPage, modifier = Modifier.fillMaxWidth()) {
+            Text(text = "오너")
+        }
+        Button(onClick = goMemberPage, modifier = Modifier.fillMaxWidth()) {
+            Text(text = "멤버")
+        }
     }
 }
 

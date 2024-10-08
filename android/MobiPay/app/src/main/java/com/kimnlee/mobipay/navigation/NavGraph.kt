@@ -38,6 +38,7 @@ import com.kimnlee.payment.navigation.paymentNavGraph
 import com.kimnlee.payment.presentation.screen.ManualPaymentScreen
 import com.kimnlee.vehiclemanagement.navigation.vehicleManagementNavGraph
 import com.kimnlee.vehiclemanagement.presentation.viewmodel.VehicleManagementViewModel
+import com.onboard.onboard.navigation.onBoardNavGraph
 import kotlin.math.log
 
 @Composable
@@ -114,7 +115,7 @@ fun AppNavGraph(
                 )
             }
         }
-        onBoardNavGraph(navController,context, authManager,homeViewModel, vehicleManagementViewModel)
+        onBoardNavGraph(navController,context, authManager, apiClient,cardManagementViewModel, vehicleManagementViewModel,memberInvitationViewModel )
         authNavGraph(navController, authManager, loginViewModel)
         paymentNavGraph(navController, biometricViewModel, paymentRepository)
         cardManagementNavGraph(

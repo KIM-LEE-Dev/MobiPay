@@ -72,6 +72,7 @@ dependencies {
     implementation(project(":features:memberinvitation"))
     implementation(project(":features:freedrive"))
     implementation(project(":features:firebase"))
+    implementation(project(":features:onboard"))
     implementation(project(":features:notification"))
 
     implementation ("com.squareup.okhttp3:okhttp:4.9.3")
