@@ -48,8 +48,8 @@ import com.kimnlee.common.utils.moneyFormat
 import com.kimnlee.mobipay.presentation.viewmodel.HomeViewModel
 import com.kimnlee.vehiclemanagement.data.model.CarMember
 import com.kimnlee.vehiclemanagement.data.model.VehicleItem
-import com.kimnlee.vehiclemanagement.presentation.viewmodel.Vehicle
 import com.mapbox.navigation.core.internal.extensions.navigationListOf
+import com.kimnlee.vehiclemanagement.presentation.viewmodel.Vehicle
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.MapView
