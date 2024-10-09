@@ -56,9 +56,9 @@ fun AppIntroduction(
 //        FeatureItem(FeatureInfo("그리고, 모비페이로 편해지세요.", "Enjoy MobiPay with the members","\uD83C\uDD93"))
         Spacer(modifier = Modifier.weight(1f))
 
-//        Button(onClick = { goHome() }) {
-//            Text(text = "홈가기")
-//        }
+        Button(onClick = { goHome() }) {
+            Text(text = "홈가기")
+        }
         Button(onClick = onNavigateOwnedCard,
             modifier = Modifier
                 .fillMaxWidth()

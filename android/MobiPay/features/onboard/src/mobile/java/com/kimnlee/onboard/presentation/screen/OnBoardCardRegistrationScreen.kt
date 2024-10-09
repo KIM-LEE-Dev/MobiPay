@@ -187,7 +187,7 @@ fun OnBoardCardRegistrationScreen(
                     focusedBorderColor = Color.Black,
                     unfocusedBorderColor = Color.Gray
                 ),
-                visualTransformation = MoneyFormat()
+                visualTransformation = MoneyFormat(),
             )
             if (oneTimeLimitErrors[pagerState.currentPage].isNotEmpty()) {
                 Text(oneTimeLimitErrors[pagerState.currentPage], color = Color.Red)

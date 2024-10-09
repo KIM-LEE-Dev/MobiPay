@@ -28,6 +28,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,17 +39,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.gson.Gson
+import com.kimnlee.common.AuthManagerProvider
 import com.kimnlee.common.FCMData
 import com.kimnlee.common.FCMDataForInvitation
 import com.kimnlee.common.FCMDependencyProvider
 import com.kimnlee.common.MemberInvitationOperations
 import com.kimnlee.common.R
+import com.kimnlee.common.auth.AuthManager
 import com.kimnlee.common.utils.CarModelImageProvider
 import com.kimnlee.memberinvitation.data.repository.MemberInvitationRepository
 import com.kimnlee.memberinvitation.presentation.viewmodel.MemberInvitationViewModel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 private const val TAG = "InvitedScreen"
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,7 +64,6 @@ fun InvitedScreen(
     navController: NavController,
     fcmDataForInvitationFromDeeplink: FCMDataForInvitation?
 ) {
-
     val context = LocalContext.current
     val fcmDataForInvitationJson = (context as? Activity)?.intent?.getStringExtra("fcmDataForInvitation")
 
@@ -72,7 +77,7 @@ fun InvitedScreen(
 //    }
 
     val memberInvitationRepository = (context.applicationContext as FCMDependencyProvider).memberInvitationOperations
-
+    val authManager = (context.applicationContext as AuthManagerProvider).authManager
     if (fcmDataForInvitation == null || isAnyFieldNull(fcmDataForInvitation)) {
         Log.d(TAG, "InvitedScreen: NULL 발견되어 종료!! $fcmDataForInvitation")
         return
@@ -105,13 +110,14 @@ fun InvitedScreen(
                 .padding(innerPadding)
         ) {
 //            SingleInvitationCard(fcmDataForInvitationExtra, imageResId)
-            SingleInvitationCard(navController, fcmDataForInvitation!!, imageResId, memberInvitationRepository)
+            SingleInvitationCard(navController, fcmDataForInvitation!!, imageResId, memberInvitationRepository, authManager)
         }
     }
 }
 
 @Composable
-fun SingleInvitationCard(navController: NavController, fcmDataForInvitation: FCMDataForInvitation, imageResId: Int, memberInvitationRepository: MemberInvitationOperations) {
+fun SingleInvitationCard(navController: NavController, fcmDataForInvitation: FCMDataForInvitation, imageResId: Int, memberInvitationRepository: MemberInvitationOperations, authManager: AuthManager) {
+    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -169,11 +175,12 @@ fun SingleInvitationCard(navController: NavController, fcmDataForInvitation: FCM
             }
             Button(
                 onClick = {
-                                navController.popBackStack()
-                                // 초대 수락 로직
-                                memberInvitationRepository.acceptInvitation(fcmDataForInvitation.invitationId!!)
-
-                          },
+                    navController.popBackStack()
+                    // 초대 수락 로직
+                    memberInvitationRepository.acceptInvitation(fcmDataForInvitation.invitationId!!)
+                    // 최초 등록 완료 로직
+                    coroutineScope.launch { authManager.setFirstIn(true) }
+                },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
                 shape = RoundedCornerShape(8.dp)
