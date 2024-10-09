@@ -92,6 +92,7 @@ class MainActivity : ComponentActivity() {
                 val isFirstIn by authManager.isFirstIn.collectAsState(initial = false)
 
                 LaunchedEffect(isLoggedIn) {
+                    Log.d("Mainactivity isLoggedin","Mainactivity isLoggedin $isFirstIn")
                     if (isLoggedIn) {
                         if(isFirstIn) { // onboarding 작업 후 주석해제
                             navController.navigate("home") {

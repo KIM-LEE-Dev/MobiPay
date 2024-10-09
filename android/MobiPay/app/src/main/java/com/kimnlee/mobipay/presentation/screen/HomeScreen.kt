@@ -2,6 +2,7 @@ package com.kimnlee.mobipay.presentation.screen
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import android.view.Gravity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -83,9 +84,17 @@ fun HomeScreen(
     }
 
     LaunchedEffect(isLoggedIn) {
+        Log.d("LaunchedEffect(isLoggedIn homescreen","homescreen $isFirstIn")
         if (!isLoggedIn) {
             navController.navigate("auth") {
                 popUpTo(navController.graph.startDestinationId) {
+                    inclusive = true
+                }
+            }
+        }
+        if (!isFirstIn){
+            navController.navigate("onboard"){
+                popUpTo(navController.graph.startDestinationId){
                     inclusive = true
                 }
             }

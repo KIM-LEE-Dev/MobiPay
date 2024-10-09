@@ -24,6 +24,7 @@ import retrofit2.http.Query
 import kotlin.coroutines.resume
 
 private const val TAG = "LoginViewModel"
+
 class LoginViewModel(
     private val authManager: AuthManager,
     private val apiClient: ApiClient,
@@ -51,10 +52,10 @@ class LoginViewModel(
     val navigationEvent = _navigationEvent.asSharedFlow()
 
     private var _showPolicyModal = MutableStateFlow(false)
-    val showPolicyModal : StateFlow<Boolean> = _showPolicyModal
+    val showPolicyModal: StateFlow<Boolean> = _showPolicyModal
 
     private var _hasAgreed = MutableStateFlow(false)
-    val hasAgreed : StateFlow<Boolean> = _hasAgreed
+    val hasAgreed: StateFlow<Boolean> = _hasAgreed
 
     private var email: String = ""
     private var picture: String = ""
@@ -63,14 +64,18 @@ class LoginViewModel(
 
     // 기본등록된 여부 파악
     private var _isFirstIn = MutableStateFlow(false)
-    val isFirstIn : StateFlow<Boolean> = _isFirstIn
+    val isFirstIn: StateFlow<Boolean> = _isFirstIn
 
     init {
         viewModelScope.launch {
 
             _isLoggedIn.value = authManager.isLoggedInImmediately()
             _isFirstIn.value = authManager.isFirstInImmediately()
-            combine(isLoggedIn, needsRegistration,isFirstIn) { isLoggedIn, isFirstIn, needsRegistration ->
+            combine(
+                isLoggedIn,
+                needsRegistration,
+                isFirstIn
+            ) { isLoggedIn, isFirstIn, needsRegistration ->
                 when {
                     isFirstIn -> "onboard"
                     isLoggedIn -> "home"
@@ -80,6 +85,8 @@ class LoginViewModel(
             }.collect { route ->
                 _navigationEvent.emit(route)
             }
+            Log.d("viewmodel init ", "viewmodel init $isFirstIn")
+
         }
     }
 
@@ -107,7 +114,8 @@ class LoginViewModel(
             val response = unAuthService.login(loginRequest)
 
             if (response.isSuccessful) {
-                val authTokenFromHeaders = response.headers()["Authorization"]?.split(" ")?.getOrNull(1)
+                val authTokenFromHeaders =
+                    response.headers()["Authorization"]?.split(" ")?.getOrNull(1)
                 authTokenFromHeaders?.let {
                     authManager.saveAuthToken(it)
                     Log.d(TAG, "sendLoginRequest에서 authManager.saveAuthToken 호출")
@@ -154,7 +162,8 @@ class LoginViewModel(
                 val response = unAuthService.register(registrationRequest)
                 if (response.isSuccessful) {
                     Log.d(TAG, "response.isSuccessful")
-                    val authTokenFromHeaders = response.headers()["Authorization"]?.split(" ")?.getOrNull(1)
+                    val authTokenFromHeaders =
+                        response.headers()["Authorization"]?.split(" ")?.getOrNull(1)
                     authTokenFromHeaders?.let {
                         authManager.saveAuthToken(it)
                         Log.d(TAG, "AuthToken 저장 완료")
@@ -166,7 +175,10 @@ class LoginViewModel(
                     refreshToken?.let { authManager.saveRefreshToken(it) }
 
                     sendTokens()
-                    Log.d(TAG, "회원가입 성공 AuthToken: ${authManager.getAuthToken()}, RefreshToken: ${authManager.getRefreshToken()}")
+                    Log.d(
+                        TAG,
+                        "회원가입 성공 AuthToken: ${authManager.getAuthToken()}, RefreshToken: ${authManager.getRefreshToken()}"
+                    )
                 } else if (response.code() == 500) {
                     Log.d(TAG, "register response 500, 이미 가입된 전화번호로 가입 시도")
                     _registrationError.value = "이미 가입된 전화번호에요."
@@ -262,21 +274,30 @@ class LoginViewModel(
             _hasAgreed.value = false
             _isFirstIn.value = false
         }
+        Log.d("reset 로그인 초기화", "reset 로그인 초기화 $isFirstIn")
+
     }
 
     // 약관 동의 모달
-    fun openPrivacyModal (){
+    fun openPrivacyModal() {
         _showPolicyModal.value = true
     }
-    fun closePrivacyModal (){
+
+    fun closePrivacyModal() {
         _showPolicyModal.value = false
     }
-    fun tooglePolicy(){
+
+    fun tooglePolicy() {
         if (!hasAgreed.value) _hasAgreed.value = true
         else _hasAgreed.value = false
     }
 
-    fun finishOnboard(){
+    fun finishOnboard() {
         _isFirstIn.value = true
+        viewModelScope.launch {
+            authManager.setFirstIn(true)
+        }
+        Log.d("finishOnboard", "finishOnboard $isFirstIn")
+
     }
 }

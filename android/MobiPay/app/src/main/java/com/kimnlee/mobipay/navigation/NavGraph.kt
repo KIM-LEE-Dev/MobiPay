@@ -3,6 +3,7 @@ package com.kimnlee.mobipay.navigation
 import android.app.Application
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.util.Log
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
@@ -84,6 +85,7 @@ fun AppNavGraph(
             "auth"
         }
     ) {
+        Log.d("navgrapth","navgrapth $isFirstIn")
         composable(
             "home",
             enterTransition = { EnterTransition.None },
