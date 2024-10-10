@@ -44,6 +44,7 @@ fun NavGraphBuilder.onBoardNavGraph(
             exitTransition = { ExitTransition.None }
         ) {
             AppIntroduction(
+                cardManagementViewModel = cardManagementViewModel,
                 onNavigateOwnedCard = { navController.navigate("onboard_card_list") },
                 goHome = {
                     navController.navigate("home")

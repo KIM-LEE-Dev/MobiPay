@@ -69,13 +69,16 @@ class AuthManager(private val context: Context) {
         context.dataStore.edit { preferences ->
             preferences[IS_FIRST_IN] = isFirstIn
         }
+        Log.d("AuthManager", "AuthManager setFirstIn: $isFirstIn")
     }
 
     suspend fun isLoggedInImmediately(): Boolean {
         return context.dataStore.data.first()[IS_LOGGED_IN] ?: false
     }
     suspend fun isFirstInImmediately(): Boolean{
-        return context.dataStore.data.first()[IS_FIRST_IN] ?: false
+        val result = context.dataStore.data.first()[IS_FIRST_IN] ?: false
+        Log.d("AuthManager", "isFirstInImmediately: $result")
+        return result
     }
     fun saveAuthToken(token: String) {
         Log.d(TAG, "JWT 토큰 정상적으로 저장됨: $token")

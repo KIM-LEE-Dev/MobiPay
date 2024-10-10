@@ -39,6 +39,13 @@ class LoginViewModel(
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
 
+    private var _hasAgreed = MutableStateFlow(false)
+    val hasAgreed: StateFlow<Boolean> = _hasAgreed
+
+    // 기본등록된 여부 파악
+    private var _isFirstIn = MutableStateFlow(false)
+    val isFirstIn: StateFlow<Boolean> = _isFirstIn
+
     private val _needsRegistration = MutableStateFlow(false)
     val needsRegistration: StateFlow<Boolean> = _needsRegistration
 
@@ -54,38 +61,31 @@ class LoginViewModel(
     private var _showPolicyModal = MutableStateFlow(false)
     val showPolicyModal: StateFlow<Boolean> = _showPolicyModal
 
-    private var _hasAgreed = MutableStateFlow(false)
-    val hasAgreed: StateFlow<Boolean> = _hasAgreed
-
     private var email: String = ""
     private var picture: String = ""
     private var kakaoAccessToken: String = ""
     private var kakaoRefreshToken: String = ""
 
-    // 기본등록된 여부 파악
-    private var _isFirstIn = MutableStateFlow(false)
-    val isFirstIn: StateFlow<Boolean> = _isFirstIn
 
     init {
         viewModelScope.launch {
-
             _isLoggedIn.value = authManager.isLoggedInImmediately()
             _isFirstIn.value = authManager.isFirstInImmediately()
+            Log.d("viewmodel init ", "viewmodel init ${isFirstIn.value}")
             combine(
                 isLoggedIn,
-                needsRegistration,
-                isFirstIn
+                isFirstIn,
+                needsRegistration
             ) { isLoggedIn, isFirstIn, needsRegistration ->
                 when {
-                    isFirstIn -> "onboard"
-                    isLoggedIn -> "home"
+                    isFirstIn -> "home"
+                    isLoggedIn -> "onboard"
                     needsRegistration -> "registration"
                     else -> "auth"
                 }
             }.collect { route ->
                 _navigationEvent.emit(route)
             }
-            Log.d("viewmodel init ", "viewmodel init $isFirstIn")
 
         }
     }
@@ -202,7 +202,6 @@ class LoginViewModel(
                 continuation.resume(token)
             }
         }
-
         fcmToken?.let {
             val sendTokensRequest = SendTokenRequest(token = fcmToken)
 
@@ -265,14 +264,12 @@ class LoginViewModel(
         Log.d(TAG, "로그인 상태 초기화")
         viewModelScope.launch {
             authManager.setLoggedIn(false)
-            authManager.setFirstIn(false)
             _isLoggedIn.value = false
             authManager.clearTokens()
             authManager.clearUserInfo()
             _registrationResult.value = null
             _needsRegistration.value = false
             _hasAgreed.value = false
-            _isFirstIn.value = false
         }
         Log.d("reset 로그인 초기화", "reset 로그인 초기화 $isFirstIn")
 

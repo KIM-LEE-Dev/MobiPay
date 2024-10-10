@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -21,26 +19,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
+import com.kimnlee.cardmanagement.presentation.viewmodel.MyDataConsentStatus
 import com.kimnlee.common.ui.theme.MobiCardBgGray
 import com.kimnlee.common.ui.theme.MobiTextAlmostBlack
 import com.kimnlee.common.ui.theme.MobiTextDarkGray
-import com.kimnlee.cardmanagement.R as CardR
 import com.kimnlee.common.R as CommonR
 import com.kimnlee.common.ui.theme.MobiBgGray
-import com.kimnlee.common.ui.theme.MobiBlue
 import com.kimnlee.onboard.R
 
 @Composable
 fun AppIntroduction(
+    cardManagementViewModel : CardManagementViewModel,
     onNavigateOwnedCard : () -> Unit,
     goHome : () -> Unit
 ) {
@@ -51,15 +48,31 @@ fun AppIntroduction(
             .padding(vertical = 40.dp),
     ) {
         HeaderSection()
-        FeatureItem(FeatureInfo("먼저, 카드를 등록해주세요.", "First, please register your cards", "\uD83D\uDCB3"))
+        FeatureItem(FeatureInfo("먼저, 카드를 등록해주세요.", "\uD83D\uDCB3"))
         Spacer(modifier = Modifier.padding(12.dp))
 //        FeatureItem(FeatureInfo("그리고, 모비페이로 편해지세요.", "Enjoy MobiPay with the members","\uD83C\uDD93"))
         Spacer(modifier = Modifier.weight(1f))
 
-//        Button(onClick = { goHome() }) {
-//            Text(text = "홈가기")
-//        }
-        Button(onClick = onNavigateOwnedCard,
+        Button(onClick = { goHome() }) {
+            Text(text = "홈가기")
+        }
+        Button(onClick = {
+                cardManagementViewModel.checkMyDataConsentStatus { status ->
+                    when (status) {
+                        is MyDataConsentStatus.Fetched -> {
+                            if (status.isConsented) {
+                                onNavigateOwnedCard()
+                            } else {
+                                onNavigateToMyDataAgreement()
+                            }
+                        }
+                        is MyDataConsentStatus.Error -> {
+                            // 에러 처리 (예: 토스트 메시지 표시)
+                        }
+                        else -> {} // Unknown 상태 처리
+                    }
+                }
+},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
@@ -117,11 +130,6 @@ fun FeatureItem(feature: FeatureInfo) {
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = feature.description,
-                    color = MobiTextDarkGray,
-                    fontSize = 14.sp
-                )
             }
         }
     }
@@ -129,6 +137,5 @@ fun FeatureItem(feature: FeatureInfo) {
 
 data class FeatureInfo(
     val title: String,
-    val description: String,
     val imageRes: String,
 )
