@@ -10,6 +10,9 @@ import com.kimnlee.common.event.NewNotificationEvent
 import com.kimnlee.common.utils.LocalDateTimeAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -24,58 +27,106 @@ class NotificationRepository(private val context: Context) {
     private val paymentRequestKey = "payment_requests"
     private val invitationMessagesKey = "invitation_messages"
 
-    var paymentRequestMessages: MutableList<Notification>
-        get() {
-            val json = sharedPreferences.getString(paymentRequestKey, null)
-            return if (json != null) {
-                gson.fromJson(json, object : TypeToken<MutableList<Notification>>() {}.type)
-            } else {
-                mutableListOf()
-            }
-        }
-        private set(value) {
-            val json = gson.toJson(value)
-            sharedPreferences.edit().putString(paymentRequestKey, json).apply()
+    private val _paymentRequestMessages = MutableStateFlow<List<Notification>>(emptyList())
+    val paymentRequestMessages: StateFlow<List<Notification>> = _paymentRequestMessages.asStateFlow()
+
+    private val _invitationMessages = MutableStateFlow<List<Notification>>(emptyList())
+    val invitationMessages: StateFlow<List<Notification>> = _invitationMessages.asStateFlow()
+
+    val allNotifications: StateFlow<List<Notification>> = MutableStateFlow(emptyList())
+
+    init {
+        loadNotifications()
+    }
+
+    private fun loadNotifications() {
+        val paymentJson = sharedPreferences.getString(paymentRequestKey, null)
+        val invitationJson = sharedPreferences.getString(invitationMessagesKey, null)
+
+        _paymentRequestMessages.value = if (paymentJson != null) {
+            gson.fromJson(paymentJson, object : TypeToken<List<Notification>>() {}.type)
+        } else {
+            emptyList()
         }
 
-    var invitationMessages: MutableList<Notification>
-        get() {
-            val json = sharedPreferences.getString(invitationMessagesKey, null)
-            return if (json != null) {
-                gson.fromJson(json, object : TypeToken<MutableList<Notification>>() {}.type)
-            } else {
-                mutableListOf()
-            }
+        _invitationMessages.value = if (invitationJson != null) {
+            gson.fromJson(invitationJson, object : TypeToken<List<Notification>>() {}.type)
+        } else {
+            emptyList()
         }
-        private set(value) {
-            val json = gson.toJson(value)
-            sharedPreferences.edit().putString(invitationMessagesKey, json).apply()
-        }
+
+        updateAllNotifications()
+    }
+
+    private fun updateAllNotifications() {
+        (allNotifications as MutableStateFlow).value = (_paymentRequestMessages.value + _invitationMessages.value)
+            .sortedByDescending { it.timestamp }
+    }
+
+
+//    var paymentRequestMessages: MutableList<Notification>
+//        get() {
+//            val json = sharedPreferences.getString(paymentRequestKey, null)
+//            return if (json != null) {
+//                gson.fromJson(json, object : TypeToken<MutableList<Notification>>() {}.type)
+//            } else {
+//                mutableListOf()
+//            }
+//        }
+//        private set(value) {
+//            val json = gson.toJson(value)
+//            sharedPreferences.edit().putString(paymentRequestKey, json).apply()
+//        }
+//
+//    var invitationMessages: MutableList<Notification>
+//        get() {
+//            val json = sharedPreferences.getString(invitationMessagesKey, null)
+//            return if (json != null) {
+//                gson.fromJson(json, object : TypeToken<MutableList<Notification>>() {}.type)
+//            } else {
+//                mutableListOf()
+//            }
+//        }
+//        private set(value) {
+//            val json = gson.toJson(value)
+//            sharedPreferences.edit().putString(invitationMessagesKey, json).apply()
+//        }
 
     fun addPaymentRequestNotification(notification: Notification) {
-        val currentList = paymentRequestMessages
+        val currentList = _paymentRequestMessages.value.toMutableList()
         currentList.add(notification)
-        paymentRequestMessages = currentList
+        _paymentRequestMessages.value = currentList
+        saveNotifications()
+        updateAllNotifications()
         emitNewNotificationEvent()
     }
 
     fun addInvitationNotification(notification: Notification) {
-        val currentList = invitationMessages
+        val currentList = _invitationMessages.value.toMutableList()
         currentList.add(notification)
-        invitationMessages = currentList
+        _invitationMessages.value = currentList
+        saveNotifications()
+        updateAllNotifications()
         emitNewNotificationEvent()
     }
 
     fun clearAllNotifications() {
-        paymentRequestMessages = mutableListOf()
-        invitationMessages = mutableListOf()
-        sharedPreferences.edit().apply {
-            remove(paymentRequestKey)
-            remove(invitationMessagesKey)
-            apply()
-        }
+        _paymentRequestMessages.value = emptyList()
+        _invitationMessages.value = emptyList()
+        saveNotifications()
+        updateAllNotifications()
         coroutineScope.launch {
-            EventBus.emit(NewNotificationEvent(false))  // 알림이 없음을 나타내는 이벤트 발생
+            EventBus.emit(NewNotificationEvent(false))
+        }
+    }
+
+    private fun saveNotifications() {
+        val paymentJson = gson.toJson(_paymentRequestMessages.value)
+        val invitationJson = gson.toJson(_invitationMessages.value)
+        sharedPreferences.edit().apply {
+            putString(paymentRequestKey, paymentJson)
+            putString(invitationMessagesKey, invitationJson)
+            apply()
         }
     }
 
