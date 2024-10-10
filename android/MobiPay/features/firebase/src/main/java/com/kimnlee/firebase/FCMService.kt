@@ -150,24 +150,6 @@ class FCMService : FirebaseMessagingService() {
                     LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
 
                     if (fcmData.lat != null && fcmData.lng != null) {
-
-                        val notificationDetails = NotificationDetails(
-                            merchantName = fcmData.merchantName,
-                            paymentBalance = fcmData.paymentBalance,
-                            info = fcmData.info,
-                            body = null,
-                            inviterName = null,
-                            inviterPicture = null,
-                            carNumber = null,
-                            carModel = null
-                        )
-                        val notification = Notification(
-                            details = notificationDetails,
-                            timestamp = LocalDateTime.now(),
-                            type = NotificationType.PAYMENT
-                        )
-                        notificationRepository.addPaymentRequestNotification(notification)
-
                         paymentOperations?.processFCM(fcmData)
                     }
                 }
@@ -220,6 +202,23 @@ class FCMService : FirebaseMessagingService() {
                     val intent = Intent("com.kimnlee.mobipay.CLOSE_MENU")
                     LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
                     // 결제 결과화면 표시
+
+                    val notificationDetails = NotificationDetails(
+                        merchantName = fcmData.merchantName,
+                        paymentBalance = fcmData.paymentBalance,
+                        info = fcmData.info,
+                        body = "결제가 완료되었습니다.",
+                        inviterName = null,
+                        inviterPicture = null,
+                        carNumber = null,
+                        carModel = null
+                    )
+                    val notification = Notification(
+                        details = notificationDetails,
+                        timestamp = LocalDateTime.now(),
+                        type = NotificationType.PAYMENT
+                    )
+                    notificationRepository.addPaymentSuccessNotification(notification)
                 }
 
                 else -> {

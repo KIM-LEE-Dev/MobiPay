@@ -26,6 +26,10 @@ class NotificationRepository(private val context: Context) {
 
     private val paymentRequestKey = "payment_requests"
     private val invitationMessagesKey = "invitation_messages"
+    private val paymentSuccessKey = "payment_success"
+
+    private val _paymentSuccessMessages = MutableStateFlow<List<Notification>>(emptyList())
+    val paymentSuccessMessages: StateFlow<List<Notification>> = _paymentSuccessMessages.asStateFlow()
 
     private val _paymentRequestMessages = MutableStateFlow<List<Notification>>(emptyList())
     val paymentRequestMessages: StateFlow<List<Notification>> = _paymentRequestMessages.asStateFlow()
@@ -42,6 +46,13 @@ class NotificationRepository(private val context: Context) {
     private fun loadNotifications() {
         val paymentJson = sharedPreferences.getString(paymentRequestKey, null)
         val invitationJson = sharedPreferences.getString(invitationMessagesKey, null)
+        val paymentSuccessJson = sharedPreferences.getString(paymentSuccessKey, null)
+
+        _paymentSuccessMessages.value = if (paymentSuccessJson != null) {
+            gson.fromJson(paymentSuccessJson, object : TypeToken<List<Notification>>() {}.type)
+        } else {
+            emptyList()
+        }
 
         _paymentRequestMessages.value = if (paymentJson != null) {
             gson.fromJson(paymentJson, object : TypeToken<List<Notification>>() {}.type)
@@ -59,7 +70,7 @@ class NotificationRepository(private val context: Context) {
     }
 
     private fun updateAllNotifications() {
-        (allNotifications as MutableStateFlow).value = (_paymentRequestMessages.value + _invitationMessages.value)
+        (allNotifications as MutableStateFlow).value = (_paymentSuccessMessages.value + _invitationMessages.value)
             .sortedByDescending { it.timestamp }
     }
 
@@ -92,10 +103,10 @@ class NotificationRepository(private val context: Context) {
 //            sharedPreferences.edit().putString(invitationMessagesKey, json).apply()
 //        }
 
-    fun addPaymentRequestNotification(notification: Notification) {
-        val currentList = _paymentRequestMessages.value.toMutableList()
+    fun addPaymentSuccessNotification(notification: Notification) {
+        val currentList = _paymentSuccessMessages.value.toMutableList()
         currentList.add(notification)
-        _paymentRequestMessages.value = currentList
+        _paymentSuccessMessages.value = currentList
         saveNotifications()
         updateAllNotifications()
         emitNewNotificationEvent()
@@ -123,9 +134,11 @@ class NotificationRepository(private val context: Context) {
     private fun saveNotifications() {
         val paymentJson = gson.toJson(_paymentRequestMessages.value)
         val invitationJson = gson.toJson(_invitationMessages.value)
+        val paymentSuccessJson = gson.toJson(_paymentSuccessMessages.value)
         sharedPreferences.edit().apply {
             putString(paymentRequestKey, paymentJson)
             putString(invitationMessagesKey, invitationJson)
+            putString(paymentSuccessKey, paymentSuccessJson)
             apply()
         }
     }
