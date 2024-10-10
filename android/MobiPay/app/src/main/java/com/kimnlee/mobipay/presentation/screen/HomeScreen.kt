@@ -43,8 +43,11 @@ import com.kimnlee.common.ui.theme.MobiTextAlmostBlack
 import com.kimnlee.common.ui.theme.MobiTextDarkGray
 import com.kimnlee.common.ui.theme.pMedium
 import com.kimnlee.common.ui.theme.tossEmoji
+import com.kimnlee.common.utils.AutoSaveParkingManager
 import com.kimnlee.common.utils.CarModelImageProvider
 import com.kimnlee.common.utils.moneyFormat
+import com.kimnlee.memberinvitation.presentation.components.MemberInvitationBottomSheet
+import com.kimnlee.memberinvitation.presentation.viewmodel.MemberInvitationViewModel
 import com.kimnlee.mobipay.presentation.viewmodel.HomeViewModel
 import com.kimnlee.vehiclemanagement.data.model.CarMember
 import com.kimnlee.vehiclemanagement.data.model.VehicleItem
@@ -64,12 +67,15 @@ import java.util.Locale
 
 private val NAVER_MAP_CLIENT_SECRET = BuildConfig.NAVER_MAP_CLIENT_SECRET
 private const val TAG = "HomeScreen"
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     loginViewModel: LoginViewModel,
     homeViewModel: HomeViewModel,
+    memberInvitationViewModel: MemberInvitationViewModel,
     navController: NavController,
-    context: Context
+    context: Context,
+    autoSaveParkingManager: AutoSaveParkingManager
 ) {
     val isLoggedIn by loginViewModel.isLoggedIn.collectAsState()
     val isFirstIn by loginViewModel.isFirstIn.collectAsState()
@@ -82,8 +88,20 @@ fun HomeScreen(
     val userName by homeViewModel.userName.collectAsState()
     val userPhoneNumber by homeViewModel.userPhoneNumber.collectAsState()
     val paidParkingDetail by homeViewModel.paidParkingDetail.collectAsState()
+    val showBottomSheet by memberInvitationViewModel.showBottomSheet.collectAsState()
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    var isAutoSaveParking by remember { mutableStateOf(autoSaveParkingManager.isAutoSaveParkingEnabled) }
+    var displayedLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
 
+    LaunchedEffect(isAutoSaveParking) {
+        displayedLocation = if (isAutoSaveParking) {
+            autoSaveParkingManager.getLastLocation()
+        } else {
+            null
+        }
+    }
 
     LaunchedEffect(vehicles) {
         if (vehicles.isNotEmpty()) {
@@ -110,7 +128,7 @@ fun HomeScreen(
     }
 
     LaunchedEffect(Unit) {
-        lastLocation = getLastLocation(context)
+//        lastLocation = getLastLocation(context)
         snapshotFlow { navController.currentBackStackEntry }
             .collect {
                 homeViewModel.refreshVehicles()
@@ -181,7 +199,13 @@ fun HomeScreen(
 
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        currentVehicle?.let { vehicle ->
+                            navController.navigate("vehiclemanagement_detail/${vehicle.carId}")
+                        }
+                    },
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MobiCardBgGray),
             ) {
@@ -220,7 +244,13 @@ fun HomeScreen(
                     if(firstVehicle != null) {
                         TextOnLP(formatLicensePlate(firstVehicle.number))
                         Spacer(modifier = Modifier.height(28.dp))
-                        CarUserIconsRow(carMembers = carMembers, vehicle = firstVehicle)
+                        CarUserIconsRow(
+                            carMembers = carMembers,
+                            vehicle = currentVehicle,
+                            onAddMember = {
+                                memberInvitationViewModel.openBottomSheet()
+                            }
+                        )
                     }else{
                         Row(
                             modifier = Modifier
@@ -343,11 +373,16 @@ fun HomeScreen(
                             modifier = Modifier
                                 .padding(top = 0.dp)
                         )
+                            Log.d(TAG, "isAutoSaveParking: $isAutoSaveParking")
                         Text(
-                            text = if(lastLocation != null) "  여기에 주차했어요!" else "  주차하면 여기에 표시 돼요!",
+                            text = if(isAutoSaveParking) {
+                                if(displayedLocation != null) "  여기에 주차했어요!" else "  주차하면 여기에 표시 돼요!"
+                            } else {
+                                "  주차위치 저장 설정을 켜주세요!"
+                            },
                             style = MaterialTheme.typography.headlineMedium,
                             color = MobiTextAlmostBlack,
-                            fontSize = 21.sp,
+                            fontSize = if (!isAutoSaveParking) 18.sp else 21.sp,
                         )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
@@ -355,21 +390,37 @@ fun HomeScreen(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
                     ){
-                        NaverMapView(lastLocation, naverMapService)
+                        NaverMapView(displayedLocation, naverMapService, isAutoSaveParking)
                     }
                 }
             }
+        }
+        if (showBottomSheet) {
+            val currentVehicleId = currentVehicle?.carId ?: 0
+            MemberInvitationBottomSheet(
+                context = context,
+                vehicleId = currentVehicleId,
+                sheetState = sheetState,
+                scope = scope,
+                viewModel = memberInvitationViewModel,
+                onNavigateToInvitePhone = {
+                    navController.navigate("invite_phone/$currentVehicleId")
+                },
+                onNavigateToConfirmation = {
+                    navController.navigate("member_confirmation/$currentVehicleId")
+                }
+            )
         }
     }
 }
 
 @Composable
-fun NaverMapView(lastLocation: Pair<Double, Double>?, naverMapService: NaverMapService?) {
+fun NaverMapView(lastLocation: Pair<Double, Double>?, naverMapService: NaverMapService?, isAutoSaveParking: Boolean) {
 
     val context = LocalContext.current
     var mapView = remember { MapView(context) }
 
-    var address = "안드로이드 오토에 연결해야 저장할 수 있어요."
+    var address = if (isAutoSaveParking) "안드로이드 오토에 연결해야 저장할 수 있어요." else ""
     // 주차 정보가 없으면 기본 위치 표시
     val lastLocationLatLng = lastLocation?.let { LatLng(it.first, it.second) } ?: LatLng(
         37.526665, 126.927127) // 37.526665, 126.927127
@@ -477,7 +528,11 @@ private fun getLastLocation(context: Context): Pair<Double, Double>? {
 }
 
 @Composable
-fun CarUserIconsRow(carMembers: List<CarMember>, vehicle: VehicleItem) {
+fun CarUserIconsRow(
+    carMembers: List<CarMember>,
+    vehicle: VehicleItem?,
+    onAddMember: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -498,7 +553,7 @@ fun CarUserIconsRow(carMembers: List<CarMember>, vehicle: VehicleItem) {
                         .fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-                if (member.memberId == vehicle.ownerId) {
+                if (member.memberId == vehicle?.ownerId) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_crown),
                         contentDescription = "오너",
@@ -533,7 +588,8 @@ fun CarUserIconsRow(carMembers: List<CarMember>, vehicle: VehicleItem) {
             modifier = Modifier
                 .size(44.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFEEEEEE)),
+                .background(Color(0xFFEEEEEE))
+                .clickable(onClick = onAddMember),
             contentAlignment = Alignment.Center
         ) {
             Icon(

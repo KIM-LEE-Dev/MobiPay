@@ -42,6 +42,7 @@ import com.kimnlee.common.ui.theme.MobiBlue
 import com.kimnlee.common.ui.theme.MobiTextAlmostBlack
 import com.kimnlee.common.ui.theme.MobiTextDarkGray
 import com.kimnlee.common.ui.theme.MobiUnselectedButtonGray
+import com.kimnlee.common.utils.AutoSaveParkingManager
 import com.kimnlee.mobipay.presentation.viewmodel.ShowMoreViewModel
 
 val SettingsIconColor = Color(0xFFB1B8C0)
@@ -51,7 +52,8 @@ val SettingsIconColor = Color(0xFFB1B8C0)
 fun ShowMoreScreen(
     loginViewModel: LoginViewModel,
     showMoreViewModel: ShowMoreViewModel,
-    navController: NavController
+    navController: NavController,
+    autoSaveParkingManager: AutoSaveParkingManager
 ) {
 
     val userName by showMoreViewModel.userName.collectAsState()
@@ -59,12 +61,13 @@ fun ShowMoreScreen(
     val userPhoneNumber by showMoreViewModel.userPhoneNumber.collectAsState()
     val userEmail by showMoreViewModel.userEmail.collectAsState()
 
+    var isAutoSaveParking by remember { mutableStateOf(autoSaveParkingManager.isAutoSaveParkingEnabled) }
+
     val formattedPhoneNumber = remember(userPhoneNumber) {
         formatPhoneNumber(userPhoneNumber)
     }
 
     var showSettingsMenu by remember { mutableStateOf(false) }
-    var isAutoSaveParking by remember { mutableStateOf(false) }
 
     val fcmDataTemporary = FCMData(
         paymentBalance="2100",
@@ -90,7 +93,7 @@ fun ShowMoreScreen(
                             style = MaterialTheme.typography.headlineMedium,
                             fontFamily = FontFamily(Font(R.font.emoji)),
                             modifier = Modifier
-                                .padding(top = 8.dp, end = 8.dp)
+                                .padding(top = 4.dp, end = 8.dp)
                         )
                         Text(
                             text = "더보기",
@@ -111,7 +114,10 @@ fun ShowMoreScreen(
                         expanded = showSettingsMenu,
                         onDismissRequest = { showSettingsMenu = false },
                         isAutoSaveParking = isAutoSaveParking,
-                        onAutoSaveParkingChange = { isAutoSaveParking = it }
+                        onAutoSaveParkingChange = {
+                            isAutoSaveParking = it
+                            autoSaveParkingManager.isAutoSaveParkingEnabled = it
+                        }
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -152,7 +158,7 @@ fun ShowMoreScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     MenuItem("결제 내역", "💳") { navController.navigate("paymenthistory") }
                     MenuItem("초대 대기", "📩") { navController.navigate("memberinvitation_invitationwaiting") }
-                    MenuItem("결제화면(임시)", "💰") { navController.navigate("payment_requestmanualpay?fcmData=${fcmDataJson}") }
+                    MenuItem("Developed by KIM&LEE Dev.", "\uD83D\uDCBB") {  }
                 }
             }
 
@@ -245,7 +251,7 @@ fun MenuItem(text: String, emoji: String, onClick: () -> Unit) {
                 fontFamily = FontFamily(Font(R.font.emoji)),
                 modifier = Modifier
                     .padding(end = 16.dp)
-                    .padding(top = 8.dp)
+                    .padding(top = 1.dp)
             )
             Text(
                 text = text,
@@ -253,11 +259,13 @@ fun MenuItem(text: String, emoji: String, onClick: () -> Unit) {
                 color = MobiTextAlmostBlack
             )
             Spacer(modifier = Modifier.weight(1f))
-            Icon(
-                imageVector = Icons.Default.ArrowForward,
-                contentDescription = "Navigate",
-                tint = MobiTextDarkGray
-            )
+            if(!text.contains("Developed by")) {
+                Icon(
+                    imageVector = Icons.Default.ArrowForward,
+                    contentDescription = "Navigate",
+                    tint = MobiTextDarkGray
+                )
+            }
         }
     }
 }

@@ -20,6 +20,7 @@ import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
 import com.kimnlee.common.auth.AuthManager
 import com.kimnlee.common.components.BottomNavigation
 import com.kimnlee.common.network.ApiClient
+import com.kimnlee.common.utils.AutoSaveParkingManager
 import com.kimnlee.memberinvitation.navigation.memberInvitationNavGraph
 import com.kimnlee.memberinvitation.presentation.viewmodel.MemberInvitationViewModel
 import com.kimnlee.mobipay.presentation.screen.HomeScreen
@@ -44,7 +45,8 @@ fun AppNavGraph(
     apiClient: ApiClient,
     loginViewModel: LoginViewModel,
     memberInvitationViewModel: MemberInvitationViewModel,
-    paymentRepository: PaymentRepository
+    paymentRepository: PaymentRepository,
+    autoSaveParkingManager: AutoSaveParkingManager
 ) {
     val application = context as Application
     val biometricViewModel = BiometricViewModel(application)
@@ -95,8 +97,10 @@ fun AppNavGraph(
                 HomeScreen(
                     loginViewModel = loginViewModel,
                     homeViewModel = homeViewModel,
+                    memberInvitationViewModel = memberInvitationViewModel,
                     navController = navController,
-                    context = context
+                    context = context,
+                    autoSaveParkingManager = autoSaveParkingManager
                 )
             }
         }
@@ -108,7 +112,8 @@ fun AppNavGraph(
                 ShowMoreScreen(
                     loginViewModel = loginViewModel,
                     showMoreViewModel = showMoreViewModel,
-                    navController = navController
+                    navController = navController,
+                    autoSaveParkingManager = autoSaveParkingManager
                 )
             }
         }

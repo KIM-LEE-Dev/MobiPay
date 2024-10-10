@@ -1,6 +1,7 @@
 package com.kimnlee.freedrive.data
 
 import android.content.Context
+import android.media.AudioManager
 import android.util.Log
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -13,28 +14,22 @@ import java.util.concurrent.Executors
 
 class WebRTCManager(private val context: Context) {
 
-    // Variables for WebRTC
     private val peerConnectionFactory: PeerConnectionFactory
     private val eglBase: EglBase = EglBase.create()
     private val audioSource: AudioSource
     private val audioTrack: AudioTrack
 
-    // Socket.IO variables
     private lateinit var socket: Socket
     private var mySocketId: String? = null
     private lateinit var roomId: String
 
-    // PeerConnections mapping
     private val peerConnections = mutableMapOf<String, PeerConnection>()
 
-    // Remote user IDs
     private val remoteUserIds = mutableListOf<String>()
 
-    // Executors for threading
     private val executor = Executors.newSingleThreadExecutor()
 
     init {
-        // Initialize PeerConnectionFactory
         val initializationOptions = PeerConnectionFactory.InitializationOptions.builder(context)
             .createInitializationOptions()
         PeerConnectionFactory.initialize(initializationOptions)
@@ -50,12 +45,17 @@ class WebRTCManager(private val context: Context) {
             .setVideoDecoderFactory(decoderFactory)
             .createPeerConnectionFactory()
 
-        // Create audio source and track
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+
         val audioConstraints = MediaConstraints()
         audioSource = peerConnectionFactory.createAudioSource(audioConstraints)
         audioTrack = peerConnectionFactory.createAudioTrack("ARDAMSa0", audioSource)
+    }
 
-        // Initialize socket connection
+    fun startCall(roomId: String) {
+        this.roomId = roomId
+
         initializeSocket()
     }
 
@@ -68,13 +68,17 @@ class WebRTCManager(private val context: Context) {
         socket.on(Socket.EVENT_CONNECT) {
             mySocketId = socket.id()
             Log.d("WebRTCManager", "Socket connected, ID: $mySocketId")
+
+            val joinMessage = JSONObject().apply {
+                put("room", roomId)
+            }
+            socket.emit("join_room", joinMessage)
         }
 
         socket.on("connect_error") { args ->
             Log.e("WebRTCManager", "Socket.IO connection error: ${args[0]}")
         }
 
-        // Handle signaling messages
         socket.on("all_users") { args ->
             executor.execute {
                 val users = args[0] as JSONArray
@@ -87,6 +91,8 @@ class WebRTCManager(private val context: Context) {
                         createPeerConnection(userID)
                     }
                 }
+
+                createOffers()
             }
         }
 
@@ -119,16 +125,6 @@ class WebRTCManager(private val context: Context) {
         }
 
         socket.connect()
-    }
-
-    fun joinRoom(roomId: String) {
-        this.roomId = roomId
-
-        // Emit the join_room event to the server
-        val joinMessage = JSONObject().apply {
-            put("room", roomId)
-        }
-        socket.emit("join_room", joinMessage)
     }
 
     private fun createPeerConnection(remoteUserId: String): PeerConnection? {
@@ -175,12 +171,10 @@ class WebRTCManager(private val context: Context) {
 
             override fun onAddStream(stream: MediaStream?) {
                 Log.d("WebRTCManager", "Stream added (deprecated): $stream")
-                // This method is deprecated in Unified Plan
             }
 
             override fun onRemoveStream(stream: MediaStream?) {
                 Log.d("WebRTCManager", "Stream removed (deprecated): $stream")
-                // This method is deprecated in Unified Plan
             }
 
             override fun onDataChannel(dataChannel: DataChannel?) {
@@ -194,14 +188,24 @@ class WebRTCManager(private val context: Context) {
             override fun onTrack(transceiver: RtpTransceiver?) {
                 Log.d("WebRTCManager", "Track added: ${transceiver?.receiver?.track()?.id()}")
 
-                // Handle remote audio track
+//                val remoteTrack = transceiver?.receiver?.track() as? AudioTrack
+//                remoteTrack?.setEnabled(true)
                 val remoteTrack = transceiver?.receiver?.track() as? AudioTrack
-                remoteTrack?.setEnabled(true)
-                // Set up an audio sink if needed
+                if (remoteTrack != null) {
+                    Log.d("WebRTCManager", "Remote audio track received and enabled")
+                    remoteTrack.setEnabled(true)
+
+                    // Add the track to a media stream or player if needed
+                    val streamId = "remote_audio_stream"
+                    val remoteMediaStream = peerConnectionFactory.createLocalMediaStream(streamId)
+                    remoteMediaStream.addTrack(remoteTrack)
+                    // Optionally play the remote stream via an audio manager or player
+                } else {
+                    Log.e("WebRTCManager", "Failed to receive remote audio track")
+                }
             }
         })
 
-        // Add audio track to the peer connection using addTrack
         val streamId = "ARDAMS"
         val rtpSender = peerConnection?.addTrack(audioTrack, listOf(streamId))
 
@@ -211,7 +215,7 @@ class WebRTCManager(private val context: Context) {
         return peerConnection
     }
 
-    fun startCall() {
+    private fun createOffers() {
         for (remoteUserId in remoteUserIds) {
             val peerConnection = peerConnections[remoteUserId]
             peerConnection?.createOffer(object : SdpObserver {
@@ -239,10 +243,9 @@ class WebRTCManager(private val context: Context) {
     }
 
     private fun handleOffer(message: JSONObject) {
-//        val sdp = message.getString("sdp")
         val sdp = message.optString("sdp", null)
         if (sdp == null) {
-            Log.e("WebRTCManager", "Received null SDP in offer/answer")
+            Log.e("WebRTCManager", "Received null SDP in offer")
             return
         }
 
@@ -296,10 +299,9 @@ class WebRTCManager(private val context: Context) {
     }
 
     private fun handleAnswer(message: JSONObject) {
-//        val sdp = message.getString("sdp")
         val sdp = message.optString("sdp", null)
         if (sdp == null) {
-            Log.e("WebRTCManager", "Received null SDP in offer/answer")
+            Log.e("WebRTCManager", "Received null SDP in answer")
             return
         }
         val answerSendID = message.getString("answerSendID")
@@ -347,6 +349,13 @@ class WebRTCManager(private val context: Context) {
             peerConnection.close()
         }
         peerConnections.clear()
+        remoteUserIds.clear()
+
+        val leaveMessage = JSONObject().apply {
+            put("room", roomId)
+        }
+        socket.emit("leave_room", leaveMessage)
+
         socket.disconnect()
     }
 }
