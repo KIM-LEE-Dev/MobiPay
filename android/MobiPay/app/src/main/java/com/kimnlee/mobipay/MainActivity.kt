@@ -91,14 +91,14 @@ class MainActivity : ComponentActivity() {
             MobiPayTheme {
                 val navController = rememberNavController()
                 val isLoggedIn by authManager.isLoggedIn.collectAsState(initial = false)
+                val isFirstIn by authManager.isFirstIn.collectAsState(initial = false)
                 val fcmData by fcmDataFromIntent.collectAsState()
                 val registeredCards by cardManagementViewModel.registeredCards.collectAsState()
-                val isFirstIn by authManager.isFirstIn.collectAsState(initial = false)
 
                 val fcmDataForInvitation by fcmDataForInvitationFromIntent.collectAsState()
 
                 LaunchedEffect(isLoggedIn) {
-                    Log.d("Mainactivity isLoggedin","Mainactivity isLoggedin $isFirstIn")
+                    Log.d("Mainactivity isLoggedin","Mainactivity isLoggedin=$isLoggedIn isfirstIn = $isFirstIn")
                     if (isLoggedIn) {
                         if(isFirstIn) { // onboarding 작업 후 주석해제
                             navController.navigate("home") {
@@ -108,7 +108,9 @@ class MainActivity : ComponentActivity() {
                         navController.navigate("onboard") {
                             popUpTo("auth") { inclusive = true }
                             }
-                        }}}
+                        }
+                    }
+                }
                 LaunchedEffect(isLoggedIn, fcmData, registeredCards) {
                     if (isLoggedIn && fcmData != null && fcmData!!.type != "payment_success" && registeredCards.isNotEmpty()) {
                         Log.d(TAG, "로그인 + FCM데이터 확인되어 수동결제 처리")

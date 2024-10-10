@@ -78,7 +78,7 @@ fun AppNavGraph(
         navController = navController,
 //        startDestination = if (isLoggedIn) "onboard" else "auth"
         startDestination = if (isLoggedIn) {
-            if(isFirstIn) { // onboard 페이지 완성후 주석 풀기
+            if(isFirstIn) {
                 "home"
             }else{
                 "onboard"
@@ -87,7 +87,7 @@ fun AppNavGraph(
             "auth"
         }
     ) {
-        Log.d("navgrapth","navgrapth $isFirstIn")
+        Log.d("isFirstIn","navgrapth  isLoggedIn=$isLoggedIn isFirstIn=$isFirstIn")
         composable(
             "home",
             enterTransition = { EnterTransition.None },

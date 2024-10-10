@@ -110,7 +110,7 @@ fun HomeScreen(
     }
 
     LaunchedEffect(isLoggedIn) {
-        Log.d("LaunchedEffect(isLoggedIn homescreen","homescreen $isFirstIn")
+        Log.d("isFirstIn","LaunchedEffect(isLoggedIn homescreen isLoggedIn=$isLoggedIn isFirstIn=$isFirstIn")
         if (!isLoggedIn) {
             navController.navigate("auth") {
                 popUpTo(navController.graph.startDestinationId) {
@@ -192,11 +192,8 @@ fun HomeScreen(
                         }
                     }
                 }
-
             }
             Spacer(modifier = Modifier.height(16.dp))
-
-
 
             Card(
                 modifier = Modifier
