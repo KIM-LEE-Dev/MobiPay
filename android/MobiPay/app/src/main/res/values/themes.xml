@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MobiPay" parent="android:Theme.Material.Light.NoActionBar"/>
+    <style name="Theme.MobiPay.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/mobi_blue</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/mobi_splash</item>
+    </style>
+</resources>
