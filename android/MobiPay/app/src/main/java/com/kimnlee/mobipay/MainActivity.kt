@@ -157,7 +157,35 @@ class MainActivity : ComponentActivity() {
                         fcmDataForInvitationFromIntent.value = null
                     }
                 }
+                // 로그인 여부
+                LaunchedEffect(isLoggedIn) {
+                    if (isLoggedIn) {
+                        cardManagementViewModel.checkMyDataConsentStatus { status ->
+                            Log.d(
+                                "Mainactivity isLoggedin",
+                                "Mainactivity isLoggedin=$isLoggedIn status = $status"
+                            )
+                            when (status) {
+                                is MyDataConsentStatus.Fetched -> {
+                                    if (status.isConsented) {
+                                        navController.navigate("home") {
+                                            popUpTo("auth") { inclusive = true }
+                                        }
+                                    } else {
+                                        navController.navigate("onboard") {
+                                            popUpTo("auth") { inclusive = true }
+                                        }
+                                    }
 
+                                }
+                                is MyDataConsentStatus.Error -> {
+                                    // 에러 처리 (예: 토스트 메시지 표시)
+                                }
+                                else -> {} // Unknown 상태 처리
+                            }
+                        }
+                    }
+                }
                 AppNavGraph(
                     navController,
                     authManager,
