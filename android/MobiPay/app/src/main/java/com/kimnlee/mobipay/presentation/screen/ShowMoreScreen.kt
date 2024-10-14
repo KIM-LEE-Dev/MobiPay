@@ -153,6 +153,8 @@ fun ShowMoreScreen(
                     MenuItem("결제 내역", "💳") { navController.navigate("paymenthistory") }
                     MenuItem("초대 대기", "📩") { navController.navigate("memberinvitation_invitationwaiting") }
                     MenuItem("결제화면(임시)", "💰") { navController.navigate("payment_requestmanualpay?fcmData=${fcmDataJson}") }
+                    // 제거할것
+                    MenuItem("온보드(임시)", "💰") { navController.navigate("onboard") }
                 }
             }
 

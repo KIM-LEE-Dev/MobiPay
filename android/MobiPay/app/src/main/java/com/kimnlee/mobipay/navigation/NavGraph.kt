@@ -17,6 +17,7 @@ import com.kimnlee.auth.navigation.authNavGraph
 import com.kimnlee.auth.presentation.viewmodel.LoginViewModel
 import com.kimnlee.cardmanagement.navigation.cardManagementNavGraph
 import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
+import com.kimnlee.cardmanagement.presentation.viewmodel.MyDataConsentStatus
 import com.kimnlee.common.auth.AuthManager
 import com.kimnlee.common.components.BottomNavigation
 import com.kimnlee.common.network.ApiClient
@@ -30,7 +31,6 @@ import com.kimnlee.notification.navigation.notificationNavGraph
 import com.kimnlee.payment.data.repository.PaymentRepository
 import com.kimnlee.payment.navigation.paymentNavGraph
 import com.kimnlee.payment.presentation.viewmodel.BiometricViewModel
-import com.kimnlee.payment.presentation.screen.ManualPaymentScreen
 import com.kimnlee.payment.presentation.viewmodel.PaymentViewModel
 import com.kimnlee.vehiclemanagement.navigation.vehicleManagementNavGraph
 import com.kimnlee.vehiclemanagement.presentation.viewmodel.VehicleManagementViewModel
@@ -71,21 +71,30 @@ fun AppNavGraph(
             }
         }
     }
-
+    var fistPagge = "home"
+    if (isLoggedIn) {
+        cardManagementViewModel.checkMyDataConsentStatus { status ->
+            Log.d("isFirstIn","navgrapth  isLoggedIn=$isLoggedIn status=$status")
+            when (status) {
+                is MyDataConsentStatus.Fetched -> {
+                    if (!status.isConsented) {
+                        fistPagge = "onboard"
+                    }
+                }
+                is MyDataConsentStatus.Error -> {
+                    // 에러 처리 (예: 토스트 메시지 표시)
+                    Log.e("여기",status.toString())
+                }
+                else -> {} // Unknown 상태 처리
+            }
+        }
+    }else{
+        fistPagge = "auth"
+    }
     NavHost(
         navController = navController,
-//        startDestination = if (isLoggedIn) "onboard" else "auth"
-        startDestination = if (isLoggedIn) {
-            if(isFirstIn) {
-                "home"
-            }else{
-                "onboard"
-            }
-        }else{
-            "auth"
-        }
+        startDestination = fistPagge
     ) {
-        Log.d("isFirstIn","navgrapth  isLoggedIn=$isLoggedIn isFirstIn=$isFirstIn")
         composable(
             "home",
             enterTransition = { EnterTransition.None },

@@ -1,6 +1,5 @@
 package com.onboard.onboard.navigation
 
-import android.content.Context
 import android.net.Uri
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -16,10 +15,9 @@ import com.kimnlee.auth.presentation.viewmodel.LoginViewModel
 import com.kimnlee.cardmanagement.data.model.CardInfo
 import com.kimnlee.cardmanagement.data.model.RegisterCardRequest
 import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
-import com.kimnlee.common.auth.AuthManager
 import com.kimnlee.common.network.ApiClient
-import com.kimnlee.memberinvitation.presentation.screen.InvitationWaitingScreen
 import com.kimnlee.memberinvitation.presentation.viewmodel.MemberInvitationViewModel
+import com.kimnlee.onboard.presentation.components.OnboardAgreeAgreementScreen
 import com.kimnlee.onboard.presentation.screen.AppIntroduction
 import com.kimnlee.onboard.presentation.screen.OnBoardCardRegistrationScreen
 import com.kimnlee.onboard.presentation.screen.OnBoardMemberInvitation
@@ -27,7 +25,6 @@ import com.kimnlee.onboard.presentation.screen.OnBoardOwnedCardListScreen
 import com.kimnlee.onboard.presentation.screen.OnBoardVehicleRegistrationScreen
 import com.kimnlee.onboard.presentation.screen.OnBoardVehicleScreen
 import com.kimnlee.vehiclemanagement.presentation.viewmodel.VehicleManagementViewModel
-import kotlin.math.log
 
 fun NavGraphBuilder.onBoardNavGraph(
     navController: NavHostController,
@@ -38,13 +35,21 @@ fun NavGraphBuilder.onBoardNavGraph(
     loginViewModel: LoginViewModel
 ) {
     navigation(startDestination = "onboard_main", route = "onboard") {
+        composable("onboard_mydata_agreement",
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None }
+        ) {
+            OnboardAgreeAgreementScreen(
+                onNavigateToOwnedCards = { navController.navigate("onboard_card_list") },
+                onNavigateBack = { navController.navigateUp() }
+            )
+        }
         // 첫 번째 온보딩 페이지
         composable("onboard_main",
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None }
         ) {
             AppIntroduction(
-                cardManagementViewModel = cardManagementViewModel,
                 onNavigateOwnedCard = { navController.navigate("onboard_card_list") },
                 goHome = {
                     navController.navigate("home")
@@ -133,39 +138,38 @@ fun NavGraphBuilder.onBoardNavGraph(
         )
         OnBoardVehicleRegistrationScreen(
             apiClient = apiClient,
-            cardManagementViewModel = cardManagementViewModel,
             vehicleViewModel = vehicleManagementViewModel,
-            cardsToRegister = cardsToRegister,
             onNavigateBack = { navController.navigateUp() },
             finishRegister = {
                 navController.navigate("home")
                 loginViewModel.finishOnboard()
+                cardManagementViewModel.registerCards(cardsToRegister) // (카드 등록)
+                cardManagementViewModel.setMyDataAgreement() //마이데이터 동의 (온보딩 상태)
             }
         )
     }
 
     // 멤버초대
-    composable("onboard_member_invite/{cardInfos}",
+    composable("onboard_member_invite/{cardsToRegister}",
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         arguments = listOf(
-            navArgument("cardInfos") { type = NavType.StringType }
+            navArgument("cardsToRegister") { type = NavType.StringType }
         )
     ) { backStackEntry ->
-        val json = Uri.decode(backStackEntry.arguments?.getString("cardInfos") ?: "")
-        val cardInfos =
-            Gson().fromJson<List<CardInfo>>(json, object : TypeToken<List<CardInfo>>() {}.type)
-        InvitationWaitingScreen(
-            navController = navController,
-            memberInvitationViewModel = memberInvitationViewModel
+        val json = Uri.decode(backStackEntry.arguments?.getString("cardsToRegister") ?: "")
+        val cardsToRegister = Gson().fromJson<List<RegisterCardRequest>>(
+            json,
+            object : TypeToken<List<RegisterCardRequest>>() {}.type
         )
-//        OnBoardMemberInvitation(
-//            apiClient = apiClient,
-//            cardManagementViewModel = cardManagementViewModel,
-//            vehicleViewModel = vehicleManagementViewModel,
-//            cardInfos = cardInfos,
-//            onNavigateBack = { navController.navigateUp() },
-//            finishRegister = { navController.navigate("home") }
-//        )
+        OnBoardMemberInvitation(
+            memberInvitationViewModel = memberInvitationViewModel,
+            navController = navController,
+            finishRegister = {
+                cardManagementViewModel.registerCards(cardsToRegister) // (카드 등록)
+                loginViewModel.finishOnboard()
+                cardManagementViewModel.setMyDataAgreement()// 멤버 초대가 완료 됐을때 마이데이터 동의
+            }
+        )
     }
 }

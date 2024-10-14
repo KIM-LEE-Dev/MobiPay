@@ -20,27 +20,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
-import com.kimnlee.cardmanagement.presentation.viewmodel.MyDataConsentStatus
 import com.kimnlee.common.ui.theme.MobiCardBgGray
 import com.kimnlee.common.ui.theme.MobiTextAlmostBlack
-import com.kimnlee.common.ui.theme.MobiTextDarkGray
 import com.kimnlee.common.R as CommonR
 import com.kimnlee.common.ui.theme.MobiBgGray
-import com.kimnlee.onboard.R
 
 @Composable
 fun AppIntroduction(
-    cardManagementViewModel : CardManagementViewModel,
     onNavigateOwnedCard : () -> Unit,
     goHome : () -> Unit
 ) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -49,29 +46,10 @@ fun AppIntroduction(
     ) {
         HeaderSection()
         FeatureItem(FeatureInfo("먼저, 카드를 등록해주세요.", "\uD83D\uDCB3"))
-        Spacer(modifier = Modifier.padding(12.dp))
-//        FeatureItem(FeatureInfo("그리고, 모비페이로 편해지세요.", "Enjoy MobiPay with the members","\uD83C\uDD93"))
         Spacer(modifier = Modifier.weight(1f))
-
-        Button(onClick = { goHome() }) {
-            Text(text = "홈가기")
-        }
+//        Button(onClick = { goHome() }) {            Text(text = "홈가기")        }
         Button(onClick = {
-                cardManagementViewModel.checkMyDataConsentStatus { status ->
-                    when (status) {
-                        is MyDataConsentStatus.Fetched -> {
-                            if (status.isConsented) {
-                                onNavigateOwnedCard()
-                            } else {
-                                onNavigateToMyDataAgreement()
-                            }
-                        }
-                        is MyDataConsentStatus.Error -> {
-                            // 에러 처리 (예: 토스트 메시지 표시)
-                        }
-                        else -> {} // Unknown 상태 처리
-                    }
-                }
+            onNavigateOwnedCard()
 },
             modifier = Modifier
                 .fillMaxWidth()
