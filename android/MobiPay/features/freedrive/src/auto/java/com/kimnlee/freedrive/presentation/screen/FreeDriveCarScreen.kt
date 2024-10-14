@@ -59,6 +59,7 @@ internal class FreeDriveCarScreen @UiThread constructor(
     private var merchantName: String? = null
     private var isCallStarted = false
     private lateinit var uiUpdateReceiver: BroadcastReceiver
+    private lateinit var menuCloseReceiver: BroadcastReceiver
     private lateinit var webRTCManager: WebRTCManager
 
     init {
@@ -73,12 +74,12 @@ internal class FreeDriveCarScreen @UiThread constructor(
                 intent?.getStringExtra("menus")?.let { newText ->
                     fcmContent = newText
                     showFcmContent = true
-                    roomId = intent.getStringExtra("room_id") ?: "1"
+                    roomId = intent.getStringExtra("roomId") ?: "1"
                     merchantName = intent.getStringExtra("merchant_name") ?: "모비페이 가맹점 메뉴 (음성주문 가능)"
 
                     if (!this@FreeDriveCarScreen::webRTCManager.isInitialized) {
                         webRTCManager = WebRTCManager(carContext)
-                        webRTCManager.joinRoom(roomId!!)
+//                        webRTCManager.joinRoom(roomId!!)
                     }
 
                     refreshScreen()
@@ -86,9 +87,21 @@ internal class FreeDriveCarScreen @UiThread constructor(
             }
         }
 
+        menuCloseReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                Log.d("menuCloseReceiver", "Broadcast received: menuCloseReceiver")
+                showFcmContent = false
+            }
+        }
+
         LocalBroadcastManager.getInstance(carContext).registerReceiver(
             uiUpdateReceiver,
             IntentFilter("com.kimnlee.testmsg.UPDATE_UI")
+        )
+
+        LocalBroadcastManager.getInstance(carContext).registerReceiver(
+            menuCloseReceiver,
+            IntentFilter("com.kimnlee.mobipay.CLOSE_MENU")
         )
 
         lifecycle.addObserver(object : DefaultLifecycleObserver {
@@ -150,9 +163,14 @@ internal class FreeDriveCarScreen @UiThread constructor(
             .setTitle(if (isCallStarted) "음성 주문 종료" else "음성 주문 연결")
             .setOnClickListener {
                 if (!isCallStarted) {
-                    webRTCManager.startCall()
+                    if (!this@FreeDriveCarScreen::webRTCManager.isInitialized) {
+                        webRTCManager = WebRTCManager(carContext)
+                        Log.d("WebRTC", "getFcmContentTemplate: roomId: $roomId")
+                    }
+                    webRTCManager.startCall(roomId!!)
                     isCallStarted = true
                 } else {
+                    showFcmContent = false
                     webRTCManager.hangup()
                     isCallStarted = false
                 }
@@ -178,12 +196,12 @@ internal class FreeDriveCarScreen @UiThread constructor(
 
         return ListTemplate.Builder()
             .setTitle(merchantName!!)
-            .setHeaderAction(Action.APP_ICON) // Show the app icon in the header
-            .setSingleList(itemListBuilder.build()) // Add the scrollable item list
+            .setHeaderAction(Action.APP_ICON)
+            .setSingleList(itemListBuilder.build())
             .setActionStrip(
                 ActionStrip.Builder()
-                    .addAction(callButton) // Add the custom call action button
-                    .addAction(backAction) // Add the icon-based back action (no custom title)
+                    .addAction(callButton)
+                    .addAction(backAction)
                     .build()
             )
             .build()
