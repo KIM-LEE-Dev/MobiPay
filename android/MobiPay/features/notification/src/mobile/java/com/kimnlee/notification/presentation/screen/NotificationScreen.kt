@@ -39,17 +39,20 @@ fun NotificationScreen(
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("전체", "결제", "멤버")
 
-    var allNotifications by remember { mutableStateOf(listOf<Notification>()) }
-    var paymentNotifications by remember { mutableStateOf(listOf<Notification>()) }
-    var invitationNotifications by remember { mutableStateOf(listOf<Notification>()) }
+    val allNotifications = notificationRepository.allNotifications.collectAsState(initial = emptyList())
+    val paymentNotifications = notificationRepository.paymentRequestMessages.collectAsState(initial = emptyList())
+    val invitationNotifications = notificationRepository.invitationMessages.collectAsState(initial = emptyList())
 
-    LaunchedEffect(Unit) {
-        loadNotifications(notificationRepository) { all, payment, invitation ->
-            allNotifications = all
-            paymentNotifications = payment
-            invitationNotifications = invitation
-        }
-    }
+//    fun updateNotifications() {
+//        allNotifications = (notificationRepository.paymentRequestMessages + notificationRepository.invitationMessages)
+//            .sortedByDescending { it.timestamp }
+//        paymentNotifications = notificationRepository.paymentRequestMessages.sortedByDescending { it.timestamp }
+//        invitationNotifications = notificationRepository.invitationMessages.sortedByDescending { it.timestamp }
+//    }
+//
+//    LaunchedEffect(Unit) {
+//        updateNotifications()
+//    }
 
     Column(
         modifier = Modifier
@@ -99,9 +102,9 @@ fun NotificationScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         when (selectedTab) {
-            0 -> AllNotifications(notificationRepository)
-            1 -> PaymentRequests(notificationRepository)
-            2 -> MemberInvitations(notificationRepository)
+            0 -> NotificationList(allNotifications.value)
+            1 -> NotificationList(paymentNotifications.value)
+            2 -> NotificationList(invitationNotifications.value)
         }
     }
 }
@@ -157,37 +160,37 @@ fun CustomTab(
     }
 }
 
-@Composable
-fun AllNotifications(notificationRepository: NotificationRepository) {
-    val allNotifications = remember {
-        (notificationRepository.paymentRequestMessages + notificationRepository.invitationMessages)
-            .sortedByDescending { it.timestamp }
-    }
-
-    NotificationList(allNotifications)
-}
-
-@Composable
-fun PaymentRequests(notificationRepository: NotificationRepository) {
-    val paymentNotifications by remember {
-        derivedStateOf {
-            notificationRepository.paymentRequestMessages.sortedByDescending { it.timestamp }
-        }
-    }
-
-    NotificationList(paymentNotifications)
-}
-
-@Composable
-fun MemberInvitations(notificationRepository: NotificationRepository) {
-    val invitationNotifications by remember {
-        derivedStateOf {
-            notificationRepository.invitationMessages.sortedByDescending { it.timestamp }
-        }
-    }
-
-    NotificationList(invitationNotifications)
-}
+//@Composable
+//fun AllNotifications(notificationRepository: NotificationRepository) {
+//    val allNotifications = remember {
+//        (notificationRepository.paymentRequestMessages + notificationRepository.invitationMessages)
+//            .sortedByDescending { it.timestamp }
+//    }
+//
+//    NotificationList(allNotifications)
+//}
+//
+//@Composable
+//fun PaymentRequests(notificationRepository: NotificationRepository) {
+//    val paymentNotifications by remember {
+//        derivedStateOf {
+//            notificationRepository.paymentRequestMessages.sortedByDescending { it.timestamp }
+//        }
+//    }
+//
+//    NotificationList(paymentNotifications)
+//}
+//
+//@Composable
+//fun MemberInvitations(notificationRepository: NotificationRepository) {
+//    val invitationNotifications by remember {
+//        derivedStateOf {
+//            notificationRepository.invitationMessages.sortedByDescending { it.timestamp }
+//        }
+//    }
+//
+//    NotificationList(invitationNotifications)
+//}
 
 @Composable
 fun NotificationList(notifications: List<Notification>) {
@@ -333,14 +336,14 @@ fun EmptyNotificationState() {
     }
 }
 
-private fun loadNotifications(
-    notificationRepository: NotificationRepository,
-    onNotificationsLoaded: (List<Notification>, List<Notification>, List<Notification>) -> Unit
-) {
-    val allNotifications = (notificationRepository.paymentRequestMessages + notificationRepository.invitationMessages)
-        .sortedByDescending { it.timestamp }
-    val paymentNotifications = notificationRepository.paymentRequestMessages.sortedByDescending { it.timestamp }
-    val invitationNotifications = notificationRepository.invitationMessages.sortedByDescending { it.timestamp }
-
-    onNotificationsLoaded(allNotifications, paymentNotifications, invitationNotifications)
-}
+//private fun loadNotifications(
+//    notificationRepository: NotificationRepository,
+//    onNotificationsLoaded: (List<Notification>, List<Notification>, List<Notification>) -> Unit
+//) {
+//    val allNotifications = (notificationRepository.paymentRequestMessages + notificationRepository.invitationMessages)
+//        .sortedByDescending { it.timestamp }
+//    val paymentNotifications = notificationRepository.paymentRequestMessages.sortedByDescending { it.timestamp }
+//    val invitationNotifications = notificationRepository.invitationMessages.sortedByDescending { it.timestamp }
+//
+//    onNotificationsLoaded(allNotifications, paymentNotifications, invitationNotifications)
+//}
