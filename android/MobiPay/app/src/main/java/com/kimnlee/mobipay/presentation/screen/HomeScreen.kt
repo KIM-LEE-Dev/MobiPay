@@ -395,7 +395,7 @@ fun HomeScreen(
                 scope = scope,
                 viewModel = memberInvitationViewModel,
                 onNavigateToInvitePhone = {
-                    navController.navigate("invite_phone/$currentVehicleId")
+                    navController.navigate("memberinvitation_phone/$currentVehicleId")
                 },
                 onNavigateToConfirmation = {
                     navController.navigate("member_confirmation/$currentVehicleId")
