@@ -40,7 +40,8 @@ fun NavGraphBuilder.onBoardNavGraph(
             exitTransition = { ExitTransition.None }
         ) {
             OnboardAgreeAgreementScreen(
-                onNavigateToOwnedCards = { navController.navigate("onboard_card_list") },
+//                onNavigateToOwnedCards = { navController.navigate("onboard_card_list") },
+                onNavigateToOnBoard = { navController.navigate("onboard") },
                 onNavigateBack = { navController.navigateUp() }
             )
         }

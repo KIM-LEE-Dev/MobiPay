@@ -94,6 +94,36 @@ class MainActivity : ComponentActivity() {
 
                 val fcmDataForInvitation by fcmDataForInvitationFromIntent.collectAsState()
 
+                // 로그인 여부
+                LaunchedEffect(isLoggedIn) {
+                    if (isLoggedIn) {
+                        cardManagementViewModel.checkMyDataConsentStatus { status ->
+                            Log.d(
+                                "Mainactivity isLoggedin",
+                                "Mainactivity isLoggedin=$isLoggedIn status = $status"
+                            )
+                            when (status) {
+                                is MyDataConsentStatus.Fetched -> {
+                                    if (status.isConsented) {
+                                        navController.navigate("home") {
+                                            popUpTo("auth") { inclusive = true }
+                                        }
+                                    } else {
+                                        navController.navigate("onboard_mydata_agreement") {
+                                            popUpTo("auth") { inclusive = true }
+                                        }
+                                    }
+
+                                }
+                                is MyDataConsentStatus.Error -> {
+                                    // 에러 처리 (예: 토스트 메시지 표시)
+                                }
+                                else -> {} // Unknown 상태 처리
+                            }
+                        }
+                    }
+                }
+
                 LaunchedEffect(isLoggedIn, fcmData, registeredCards) {
                     if (isLoggedIn && fcmData != null && fcmData!!.type != "payment_success" && registeredCards.isNotEmpty()) {
                         Log.d(TAG, "로그인 + FCM데이터 확인되어 수동결제 처리")
@@ -106,7 +136,6 @@ class MainActivity : ComponentActivity() {
                         navController.navigate("payment_requestmanualpay?fcmData=$fcmDataJson&registeredCards=$registeredCardsJson") {
                             popUpTo("home") { inclusive = false }
                         }
-
                         // 처리 후 fcmData 리셋
                         fcmDataFromIntent.value = null
                     }
@@ -157,35 +186,7 @@ class MainActivity : ComponentActivity() {
                         fcmDataForInvitationFromIntent.value = null
                     }
                 }
-                // 로그인 여부
-                LaunchedEffect(isLoggedIn) {
-                    if (isLoggedIn) {
-                        cardManagementViewModel.checkMyDataConsentStatus { status ->
-                            Log.d(
-                                "Mainactivity isLoggedin",
-                                "Mainactivity isLoggedin=$isLoggedIn status = $status"
-                            )
-                            when (status) {
-                                is MyDataConsentStatus.Fetched -> {
-                                    if (status.isConsented) {
-                                        navController.navigate("home") {
-                                            popUpTo("auth") { inclusive = true }
-                                        }
-                                    } else {
-                                        navController.navigate("onboard") {
-                                            popUpTo("auth") { inclusive = true }
-                                        }
-                                    }
 
-                                }
-                                is MyDataConsentStatus.Error -> {
-                                    // 에러 처리 (예: 토스트 메시지 표시)
-                                }
-                                else -> {} // Unknown 상태 처리
-                            }
-                        }
-                    }
-                }
                 AppNavGraph(
                     navController,
                     authManager,

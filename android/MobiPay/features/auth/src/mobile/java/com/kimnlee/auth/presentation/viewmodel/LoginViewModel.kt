@@ -185,7 +185,9 @@ class LoginViewModel(
 
             // 네비게이션 이벤트는 모든 처리가 끝난 후 한 번만 발생시킴
             if (_isLoggedIn.value) {
-                _navigationEvent.emit("home")
+//                _navigationEvent.emit("home")
+                Log.e(TAG, "회원가입 성공해서 한번만 실행되는 ${_isLoggedIn.value}")
+                _navigationEvent.emit("onboard_mydata_agreement")
             }
         }
     }

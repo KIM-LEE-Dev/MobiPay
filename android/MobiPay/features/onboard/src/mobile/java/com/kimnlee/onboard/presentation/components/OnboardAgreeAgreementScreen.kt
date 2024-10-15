@@ -60,7 +60,8 @@ import com.kimnlee.common.ui.theme.MobiTextAlmostBlack
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardAgreeAgreementScreen(
-    onNavigateToOwnedCards: () -> Unit,
+//    onNavigateToOwnedCards: () -> Unit,
+    onNavigateToOnBoard: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     var showLoading by remember { mutableStateOf(false) }
@@ -168,7 +169,8 @@ fun OnboardAgreeAgreementScreen(
                     coroutineScope.launch {
                         withContext(Dispatchers.Main) {
                             showLoading = false
-                            onNavigateToOwnedCards() // 메인 스레드에서 실행
+//                            onNavigateToOwnedCards() // 메인 스레드에서 실행
+                            onNavigateToOnBoard() // 메인 스레드에서 실행
                         }
                     }
                 },
