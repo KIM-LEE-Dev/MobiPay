@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.kimnlee.cardmanagement.data.api.CardManagementApiService
 import com.kimnlee.cardmanagement.data.model.AutoPaymentCardRequest
 import com.kimnlee.cardmanagement.data.model.CardDetailResponse
-import com.kimnlee.cardmanagement.data.model.CardInfo
 import com.kimnlee.cardmanagement.data.model.OwnedCard
 import com.kimnlee.cardmanagement.data.model.RegisterCardRequest
 import com.kimnlee.cardmanagement.data.model.RegisteredCard
@@ -256,6 +255,7 @@ class CardManagementViewModel(
                     val myDataConsentResponse = response.body()
                     if (myDataConsentResponse != null) {
                         _myDataAgreementState.value = MyDataAgreementState.Success(myDataConsentResponse.myDataConsent)
+                        authManager.setFirstIn(myDataConsentResponse.myDataConsent) // Add for onboard function
                     } else {
                         _myDataAgreementState.value = MyDataAgreementState.Error("Response body is null")
                     }

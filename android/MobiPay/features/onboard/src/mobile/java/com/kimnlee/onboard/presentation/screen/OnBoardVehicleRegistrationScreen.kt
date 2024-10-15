@@ -57,9 +57,7 @@ private const val TAG = "OnBoardVehicleRegistrationScreen"
 @Composable
 fun OnBoardVehicleRegistrationScreen(
     vehicleViewModel: VehicleManagementViewModel,
-    cardManagementViewModel: CardManagementViewModel,
     apiClient: ApiClient,
-    cardsToRegister: List<RegisterCardRequest>,
     onNavigateBack: () -> Unit,
     finishRegister : () -> Unit
 ) {
@@ -508,7 +506,6 @@ fun OnBoardVehicleRegistrationScreen(
                                 showDialog = false
                                 vehicleViewModel.registerVehicle(licensePlate, selectedVehicleType) // 차량 등록
                                 // 카드 등록
-                                cardManagementViewModel.registerCards(cardsToRegister)
                                 finishRegister() // 등록 종료 및 home 으로 이동
 
                             },

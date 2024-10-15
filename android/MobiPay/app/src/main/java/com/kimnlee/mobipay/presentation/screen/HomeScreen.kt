@@ -110,7 +110,7 @@ fun HomeScreen(
     }
 
     LaunchedEffect(isLoggedIn) {
-        Log.d("isFirstIn","LaunchedEffect(isLoggedIn homescreen isLoggedIn=$isLoggedIn isFirstIn=$isFirstIn")
+//        Log.d("isFirstIn","LaunchedEffect(isLoggedIn homescreen isLoggedIn=$isLoggedIn isFirstIn=$isFirstIn")
         if (!isLoggedIn) {
             navController.navigate("auth") {
                 popUpTo(navController.graph.startDestinationId) {
@@ -118,13 +118,13 @@ fun HomeScreen(
                 }
             }
         }
-        if (!isFirstIn){
-            navController.navigate("onboard"){
-                popUpTo(navController.graph.startDestinationId){
-                    inclusive = true
-                }
-            }
-        }
+//        if (!isFirstIn){
+//            navController.navigate("onboard"){
+//                popUpTo(navController.graph.startDestinationId){
+//                    inclusive = true
+//                }
+//            }
+//        }
     }
 
     LaunchedEffect(Unit) {

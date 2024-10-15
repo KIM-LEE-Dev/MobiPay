@@ -49,11 +49,9 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
 import com.kimnlee.common.ui.theme.MobiBgWhite
 import com.kimnlee.common.ui.theme.MobiBlue
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.kimnlee.common.R
@@ -62,7 +60,6 @@ import com.kimnlee.common.ui.theme.MobiTextAlmostBlack
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardAgreeAgreementScreen(
-    viewModel: CardManagementViewModel,
     onNavigateToOwnedCards: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
@@ -169,8 +166,6 @@ fun OnboardAgreeAgreementScreen(
                 onClick = {
                     showLoading = true
                     coroutineScope.launch {
-                        viewModel.setMyDataAgreement() // 비동기 작업 시작
-                        delay(2000) // 2초 지연
                         withContext(Dispatchers.Main) {
                             showLoading = false
                             onNavigateToOwnedCards() // 메인 스레드에서 실행

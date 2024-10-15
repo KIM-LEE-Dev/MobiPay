@@ -18,8 +18,6 @@ import android.net.Uri
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
@@ -27,6 +25,7 @@ import com.kimnlee.payment.presentation.viewmodel.AuthenticationState
 import com.kimnlee.payment.presentation.viewmodel.BiometricViewModel
 import com.kimnlee.auth.presentation.viewmodel.LoginViewModel
 import com.kimnlee.cardmanagement.presentation.viewmodel.CardManagementViewModel
+import com.kimnlee.cardmanagement.presentation.viewmodel.MyDataConsentStatus
 import com.kimnlee.common.FCMData
 import com.kimnlee.common.FCMDataForInvitation
 import com.kimnlee.common.ui.theme.MobiPayTheme
@@ -34,7 +33,6 @@ import com.kimnlee.memberinvitation.presentation.viewmodel.MemberInvitationViewM
 import com.kimnlee.mobipay.navigation.AppNavGraph
 import com.kimnlee.payment.PaymentApprovalReceiver
 import com.kimnlee.payment.data.repository.PaymentRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 
 private const val TAG = "MainActivity"
@@ -91,26 +89,11 @@ class MainActivity : ComponentActivity() {
             MobiPayTheme {
                 val navController = rememberNavController()
                 val isLoggedIn by authManager.isLoggedIn.collectAsState(initial = false)
-                val isFirstIn by authManager.isFirstIn.collectAsState(initial = false)
                 val fcmData by fcmDataFromIntent.collectAsState()
                 val registeredCards by cardManagementViewModel.registeredCards.collectAsState()
 
                 val fcmDataForInvitation by fcmDataForInvitationFromIntent.collectAsState()
 
-                LaunchedEffect(isLoggedIn) {
-                    Log.d("Mainactivity isLoggedin","Mainactivity isLoggedin=$isLoggedIn isfirstIn = $isFirstIn")
-                    if (isLoggedIn) {
-                        if(isFirstIn) { // onboarding 작업 후 주석해제
-                            navController.navigate("home") {
-                                popUpTo("auth") { inclusive = true }
-                            }
-                        }else{
-                        navController.navigate("onboard") {
-                            popUpTo("auth") { inclusive = true }
-                            }
-                        }
-                    }
-                }
                 LaunchedEffect(isLoggedIn, fcmData, registeredCards) {
                     if (isLoggedIn && fcmData != null && fcmData!!.type != "payment_success" && registeredCards.isNotEmpty()) {
                         Log.d(TAG, "로그인 + FCM데이터 확인되어 수동결제 처리")
@@ -174,7 +157,35 @@ class MainActivity : ComponentActivity() {
                         fcmDataForInvitationFromIntent.value = null
                     }
                 }
+                // 로그인 여부
+                LaunchedEffect(isLoggedIn) {
+                    if (isLoggedIn) {
+                        cardManagementViewModel.checkMyDataConsentStatus { status ->
+                            Log.d(
+                                "Mainactivity isLoggedin",
+                                "Mainactivity isLoggedin=$isLoggedIn status = $status"
+                            )
+                            when (status) {
+                                is MyDataConsentStatus.Fetched -> {
+                                    if (status.isConsented) {
+                                        navController.navigate("home") {
+                                            popUpTo("auth") { inclusive = true }
+                                        }
+                                    } else {
+                                        navController.navigate("onboard") {
+                                            popUpTo("auth") { inclusive = true }
+                                        }
+                                    }
 
+                                }
+                                is MyDataConsentStatus.Error -> {
+                                    // 에러 처리 (예: 토스트 메시지 표시)
+                                }
+                                else -> {} // Unknown 상태 처리
+                            }
+                        }
+                    }
+                }
                 AppNavGraph(
                     navController,
                     authManager,
