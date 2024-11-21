@@ -237,6 +237,7 @@ fun HomeScreen(
                         CarUserIconsRow(
                             carMembers = carMembers,
                             vehicle = currentVehicle,
+                            userPhoneNumber = userPhoneNumber,
                             onAddMember = {
                                 memberInvitationViewModel.openBottomSheet()
                             }
@@ -394,7 +395,7 @@ fun HomeScreen(
                 scope = scope,
                 viewModel = memberInvitationViewModel,
                 onNavigateToInvitePhone = {
-                    navController.navigate("invite_phone/$currentVehicleId")
+                    navController.navigate("memberinvitation_phone/$currentVehicleId")
                 },
                 onNavigateToConfirmation = {
                     navController.navigate("member_confirmation/$currentVehicleId")
@@ -521,6 +522,7 @@ private fun getLastLocation(context: Context): Pair<Double, Double>? {
 fun CarUserIconsRow(
     carMembers: List<CarMember>,
     vehicle: VehicleItem?,
+    userPhoneNumber: String,
     onAddMember: () -> Unit
 ) {
     Row(
@@ -543,7 +545,7 @@ fun CarUserIconsRow(
                         .fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-                if (member.memberId == vehicle?.ownerId) {
+                if (userPhoneNumber.isNotEmpty() && member.memberId == vehicle?.ownerId) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_crown),
                         contentDescription = "오너",
