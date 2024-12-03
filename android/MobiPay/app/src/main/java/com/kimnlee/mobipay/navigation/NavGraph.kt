@@ -35,7 +35,7 @@ import com.kimnlee.payment.presentation.viewmodel.BiometricViewModel
 import com.kimnlee.payment.presentation.viewmodel.PaymentViewModel
 import com.kimnlee.vehiclemanagement.navigation.vehicleManagementNavGraph
 import com.kimnlee.vehiclemanagement.presentation.viewmodel.VehicleManagementViewModel
-import com.onboard.onboard.navigation.onBoardNavGraph
+import com.kimnlee.onboard.navigation.onBoardNavGraph
 
 @Composable
 fun AppNavGraph(
@@ -73,14 +73,14 @@ fun AppNavGraph(
             }
         }
     }
-    var fistPagge = "home"
+    var firstPage = "home"
     if (isLoggedIn) {
         cardManagementViewModel.checkMyDataConsentStatus { status ->
             Log.d("isFirstIn","navgrapth  isLoggedIn=$isLoggedIn status=$status")
             when (status) {
                 is MyDataConsentStatus.Fetched -> {
                     if (!status.isConsented) {
-                        fistPagge = "onboard"
+                        firstPage = "onboard"
                     }
                 }
                 is MyDataConsentStatus.Error -> {
@@ -91,11 +91,11 @@ fun AppNavGraph(
             }
         }
     }else{
-        fistPagge = "auth"
+        firstPage = "auth"
     }
     NavHost(
         navController = navController,
-        startDestination = fistPagge
+        startDestination = firstPage
     ) {
         composable(
             "home",

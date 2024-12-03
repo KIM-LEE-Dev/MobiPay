@@ -1,4 +1,4 @@
-package com.onboard.onboard.navigation
+package com.kimnlee.onboard.navigation
 
 import android.net.Uri
 import androidx.compose.animation.EnterTransition
